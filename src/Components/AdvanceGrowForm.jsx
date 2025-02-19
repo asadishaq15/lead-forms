@@ -2,9 +2,9 @@ import React, { useState } from "react";
 
 const AdvanceGrowMarketingLeadForm = () => {
   const [formData, setFormData] = useState({
-    lead_token: "ce64ddcd6d14495bb04dce8ed509125e", // Static value
+    lead_token: "ce64ddcd6d14495bb04dce8ed509125e",
     caller_id: "",
-    traffic_source_id: "10003", // Static value
+    traffic_source_id: "10003",
     first_name: "",
     last_name: "",
     email: "",
@@ -15,10 +15,12 @@ const AdvanceGrowMarketingLeadForm = () => {
     source_url: "",
   });
 
+  const [error, setError] = useState(null);
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    setError(null);
 
-    // Validate required fields
     const requiredFields = [
       "caller_id",
       "first_name",
@@ -33,43 +35,32 @@ const AdvanceGrowMarketingLeadForm = () => {
 
     for (const field of requiredFields) {
       if (!formData[field]) {
-        alert(`Field "${field.replace("_", " ")}" is required.`);
+        setError(`Field "${field.replace(/_/g, " ")}" is required.`);
         return;
       }
     }
 
     if (!/^\d{5}$/.test(formData.zip)) {
-      alert("Valid 5-digit ZIP code is required.");
+      setError("Please enter a valid 5-digit ZIP code.");
       return;
     }
 
     if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      alert("Valid email address is required.");
+      setError("Please enter a valid email address.");
       return;
     }
 
-    // Construct the POST URL
-    const baseUrl =
-      "https://advance-grow-marketing.trackdrive.com/api/v1/leads";
-    const params = new URLSearchParams({
-      lead_token: formData.lead_token,
-      caller_id: formData.caller_id,
-      traffic_source_id: formData.traffic_source_id,
-      first_name: formData.first_name,
-      last_name: formData.last_name,
-      email: formData.email,
-      city: formData.city,
-      zip: formData.zip,
-      dob: formData.dob,
-      jornaya_leadid: formData.jornaya_leadid,
-      source_url: formData.source_url,
-    });
+    // Date validation
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(formData.dob)) {
+      setError("Please enter a valid date in YYYY-MM-DD format.");
+      return;
+    }
 
+    const baseUrl = "https://advance-grow-marketing.trackdrive.com/api/v1/leads";
+    const params = new URLSearchParams(formData);
     const url = `${baseUrl}?${params.toString()}`;
 
-    console.log(`Constructed POST URL: ${url}`);
-
-    // Submit the form without CORS
     fetch(url, {
       method: "POST",
       headers: {
@@ -78,15 +69,34 @@ const AdvanceGrowMarketingLeadForm = () => {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log("API Response:", data);
         if (data.success) {
           alert("Lead submitted successfully!");
+          // Clear form after successful submission
+          setFormData(prev => ({
+            ...prev,
+            caller_id: "",
+            first_name: "",
+            last_name: "",
+            email: "",
+            city: "",
+            zip: "",
+            dob: "",
+            jornaya_leadid: "",
+            source_url: "",
+          }));
         } else {
-          throw new Error("Failed to submit lead. Please try again.");
+          // Handle specific error messages from API
+          const errorMessage = data.message || 
+                             data.error || 
+                             (data.errors && Object.values(data.errors).flat().join(", ")) ||
+                             "Failed to submit lead. Please try again.";
+          setError(errorMessage);
         }
       })
       .catch((error) => {
-        alert(`Error: ${error.message}`);
+        setError(
+          error.message || "Network error occurred. Please check your connection and try again."
+        );
       });
   };
 
@@ -96,6 +106,8 @@ const AdvanceGrowMarketingLeadForm = () => {
       ...prev,
       [name]: value,
     }));
+    // Clear error when user starts typing
+    setError(null);
   };
 
   return (
@@ -103,9 +115,24 @@ const AdvanceGrowMarketingLeadForm = () => {
       <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 to-blue-800 py-6">
           <h2 className="text-center text-3xl font-extrabold text-white px-4">
-          GrowX Marketing Services Lead Form
+            GrowX Marketing Services Lead Form
           </h2>
         </div>
+
+        {error && (
+          <div className="mx-6 mt-6 p-4 bg-red-50 border-l-4 border-red-500 rounded">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="px-6 py-8 space-y-6">
           {/* Personal Information */}
