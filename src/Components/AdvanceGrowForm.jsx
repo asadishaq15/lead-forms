@@ -103,7 +103,7 @@ const AdvanceGrowMarketingLeadForm = () => {
       <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 to-blue-800 py-6">
           <h2 className="text-center text-3xl font-extrabold text-white px-4">
-            Advance Grow Marketing Lead Form
+          GrowX Marketing Services Lead Form
           </h2>
         </div>
 

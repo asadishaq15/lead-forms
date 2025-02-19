@@ -9,7 +9,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<KBBLeadForm />} />
-        <Route path="/advancegrow" element={<AdvanceGrowMarketingLeadForm />} />
+        <Route path="/growx" element={<AdvanceGrowMarketingLeadForm />} />
    
       </Routes>
     </Router>
