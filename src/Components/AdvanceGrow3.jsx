@@ -132,9 +132,7 @@ const AdvanceGrowMarketingLeadForm2 = () => {
            Growx Lead Form
             </h2>
           </div>
-          <p className="mt-3 text-center text-white text-opacity-90">
-            Complete the form below to submit your information to Advance Grow Marketing
-          </p>
+        
         </div>
 
         {error && (
