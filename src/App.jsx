@@ -16,7 +16,7 @@ function App() {
         <Route path="/" element={<KBBLeadForm />} />
         <Route path="/growx" element={<AdvanceGrowMarketingLeadForm />} />
         <Route path="/growx2" element={<AdvanceGrowMarketingLeadForm2 />} />
-        <Route path="/upbeat" element={<DepoProveraLeadForm />} />
+        <Route path="/lead4" element={<DepoProveraLeadForm />} />
         <Route path="/leads" element={<AdvanceGrowMarketingCallTransferForm />} />
         <Route path="/leads2" element={<KBBSalesGroupLeadForm2 />} />
         <Route path="/leads3" element={<KBBSalesLeadForm3 />} />
