@@ -204,7 +204,7 @@ const LeadForm = () => {
             <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
                 <div className="bg-gradient-to-r from-indigo-600 to-purple-700 py-8 px-6">
                     <h2 className="text-center text-3xl font-extrabold text-white">
-                        LLC - ACA
+                    D1 ACA KB
                     </h2>
                 </div>
 

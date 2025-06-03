@@ -22,8 +22,8 @@ function App() {
         <Route path="/leads" element={<AdvanceGrowMarketingCallTransferForm />} />
         <Route path="/leads2" element={<KBBSalesGroupLeadForm2 />} />
         <Route path="/leads3" element={<KBBSalesLeadForm3 />} />
-        <Route path="/mr" element={<KBBSalesLeadForm4 />} />
         <Route path="/leads4" element={<EvolveTechInnovationsForm />} />
+        <Route path="/leads5" element={<KBBSalesLeadForm4 />} />
    
       </Routes>
     </Router>
