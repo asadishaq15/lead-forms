@@ -10,6 +10,7 @@ import KBBSalesLeadForm3 from './Components/KBBForm3';
 import KBBSalesLeadForm4 from './Components/kBBForm4';
 import DepoProveraLeadForm from './Components/Form4';
 import EvolveTechInnovationsForm from './Components/EvolveForm';
+import AcaKkCplForm from './Components/kBBForm5';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         <Route path="/leads3" element={<KBBSalesLeadForm3 />} />
         <Route path="/leads4" element={<EvolveTechInnovationsForm />} />
         <Route path="/leads5" element={<KBBSalesLeadForm4 />} />
+        <Route path="/leads6" element={<AcaKkCplForm />} />
    
       </Routes>
     </Router>
