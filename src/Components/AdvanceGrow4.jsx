@@ -9,6 +9,8 @@ const AdvanceGrow4 = () => {
     last_name: "",
     state: "",
     zip: "",
+    dob: "",
+    email: "",
   });
 
   const [error, setError] = useState(null);
@@ -23,11 +25,15 @@ const AdvanceGrow4 = () => {
       "last_name",
       "state",
       "zip",
+      "dob",
+      "email",
     ];
 
     for (const field of requiredFields) {
       if (!formData[field]) {
-        setError(`Field "${field.replace(/_/g, " ")}" is required.`);
+        setError(
+          `Field "${field.replace(/_/g, " ")}" is required.`
+        );
         return;
       }
     }
@@ -37,7 +43,25 @@ const AdvanceGrow4 = () => {
       return;
     }
 
-    const baseUrl = "https://growxmarketingservices.trackdrive.com/api/v1/leads";
+    // Validate DOB: YYYY-MM-DD
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(formData.dob)) {
+      setError("Please enter a valid Date of Birth in YYYY-MM-DD format.");
+      return;
+    }
+    // Optional: More DOB validation (e.g., age restrictions, invalid date) could be added here
+
+    // Validate Email
+    if (
+      !/^([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/.test(
+        formData.email
+      )
+    ) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    const baseUrl =
+      "https://growxmarketingservices.trackdrive.com/api/v1/leads";
     const params = new URLSearchParams(formData);
     const url = `${baseUrl}?${params.toString()}`;
 
@@ -51,27 +75,30 @@ const AdvanceGrow4 = () => {
       .then((data) => {
         if (data.success) {
           alert("Lead submitted successfully!");
-          // Clear form after successful submission
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
             caller_id: "",
             first_name: "",
             last_name: "",
             state: "",
             zip: "",
+            dob: "",
+            email: "",
           }));
         } else {
-          // Handle specific error messages from API
-          const errorMessage = data.message || 
-                             data.error || 
-                             (data.errors && Object.values(data.errors).flat().join(", ")) ||
-                             "Failed to submit lead. Please try again.";
+          const errorMessage =
+            data.message ||
+            data.error ||
+            (data.errors &&
+              Object.values(data.errors).flat().join(", ")) ||
+            "Failed to submit lead. Please try again.";
           setError(errorMessage);
         }
       })
       .catch((error) => {
         setError(
-          error.message || "Network error occurred. Please check your connection and try again."
+          error.message ||
+            "Network error occurred. Please check your connection and try again."
         );
       });
   };
@@ -82,7 +109,6 @@ const AdvanceGrow4 = () => {
       ...prev,
       [name]: value,
     }));
-    // Clear error when user starts typing
     setError(null);
   };
 
@@ -100,7 +126,7 @@ const AdvanceGrow4 = () => {
       <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 to-blue-800 py-6">
           <h2 className="text-center text-3xl font-extrabold text-white px-4">
-          ACA OV
+            ACA OV
           </h2>
         </div>
 
@@ -108,8 +134,16 @@ const AdvanceGrow4 = () => {
           <div className="mx-6 mt-6 p-4 bg-red-50 border-l-4 border-red-500 rounded">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                <svg
+                  className="h-5 w-5 text-red-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
               <div className="ml-3">
@@ -149,6 +183,38 @@ const AdvanceGrow4 = () => {
                   value={formData.last_name}
                   onChange={handleChange}
                   required
+                  className="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Date of Birth (YYYY-MM-DD) *
+                </label>
+                <input
+                  type="text"
+                  name="dob"
+                  value={formData.dob}
+                  onChange={handleChange}
+                  required
+                  placeholder="1980-12-31"
+                  className="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
+                  maxLength={10}
+                  pattern="\d{4}-\d{2}-\d{2}"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Email Address *
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  placeholder="example@gmail.com"
                   className="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500"
                 />
               </div>
