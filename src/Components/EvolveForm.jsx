@@ -28,23 +28,32 @@ const EvolveTechInnovationsForm = () => {
     }
   }, [success, formData]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setSuccess(false);
     setIsSubmitting(true);
-
+  
+    // Required fields for EnvironEdu
     const requiredFields = [
-      "caller_id",
-      "first_name",
-      "last_name",
-      "email",
+      "fname",
+      "lname",
+      "city",
       "state",
       "zip",
-      "dob",
-      "jornaya_leadid",
+      "p1",
+      "date_of_birth", // or "dob" if that's your field name
+      // Add tracking fields if needed
+      "LeadID",
+      "OptInIp",
+      "subid",
+      "lid",
+      "SignupURL",
+      "ConsentURL",
+      "xxTrustedFormToken",
+      "RecordID"
     ];
-
+  
     for (const field of requiredFields) {
       if (!formData[field]) {
         setError(`Field "${field.replace(/_/g, " ")}" is required.`);
@@ -52,81 +61,91 @@ const EvolveTechInnovationsForm = () => {
         return;
       }
     }
-
-    // Validate phone number format
-    const phoneRegex = /^\+1[0-9]{10}$/;
-    if (!phoneRegex.test(formData.caller_id)) {
-      setError("Please enter a valid US phone number in format: +1XXXXXXXXXX");
+  
+    // Validate phone number: 10 digits, no formatting
+    if (!/^\d{10}$/.test(formData.p1)) {
+      setError("Please enter a valid 10-digit phone number (no dashes or spaces).");
       setIsSubmitting(false);
       return;
     }
-
+  
     // Validate ZIP code
     if (!/^\d{5}$/.test(formData.zip)) {
       setError("Please enter a valid 5-digit ZIP code.");
       setIsSubmitting(false);
       return;
     }
-
-    // Validate email format
-    if (!/\S+@\S+\.\S+/.test(formData.email)) {
+  
+    // Validate email format (if provided)
+    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
       setError("Please enter a valid email address.");
       setIsSubmitting(false);
       return;
     }
-
-    // Date validation
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(formData.dob)) {
+  
+    // Validate date of birth
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(formData.date_of_birth)) {
       setError("Please enter a valid date in YYYY-MM-DD format.");
       setIsSubmitting(false);
       return;
     }
-
-    const baseUrl = "https://evolvetech-innovations.trackdrive.com/api/v1/leads";
+  
+    // Always set dob to match date_of_birth if required
+    formData.dob = formData.date_of_birth;
+  
+    // Construct the query string for your proxy
     const params = new URLSearchParams(formData);
-    const url = `${baseUrl}?${params.toString()}`;
-
-    fetch(url, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setIsSubmitting(false);
-        if (data.success) {
-          setSuccess(true);
-          // Clear form after successful submission
-          setFormData(prev => ({
-            ...prev,
-            caller_id: "",
-            first_name: "",
-            last_name: "",
-            email: "",
-            state: "",
-            zip: "",
-            dob: "",
-            jornaya_leadid: "",
-          }));
-        } else {
-          // Handle specific error messages from API
-          const errorMessage = data.message || 
-                             data.error || 
-                             (data.errors && Object.values(data.errors).flat().join(", ")) ||
-                             "Failed to submit lead. Please try again.";
-          setError(errorMessage);
-        }
-      })
-      .catch((error) => {
-        setIsSubmitting(false);
-        setError(
-          error.message || "Network error occurred. Please check your connection and try again."
-        );
+    const url = `/api/environedu-submit?${params.toString()}`;
+  
+    try {
+      const response = await fetch(url, {
+        method: "GET",
       });
+  
+      const data = await response.text(); // API may return text/html
+  
+      setIsSubmitting(false);
+  
+      // Simple success check, you can improve this based on actual API response
+      if (
+        response.ok &&
+        !data.includes("Failed for selected list ID") &&
+        !data.toLowerCase().includes("error")
+      ) {
+        setSuccess(true);
+        // Clear form after successful submission
+        setFormData(prev => ({
+          ...prev,
+          fname: "",
+          lname: "",
+          a1: "",
+          a2: "",
+          city: "",
+          state: "",
+          zip: "",
+          email: "",
+          p1: "",
+          date_of_birth: "",
+          dob: "",
+          gender: "",
+          LeadID: "", // regenerate if needed
+          OptInIp: "", // regenerate if needed
+          RecordID: "", // regenerate if needed
+          // ...other tracking fields as needed
+        }));
+      } else {
+        setError(
+          "Failed to submit lead. Please check your details or try again."
+        );
+      }
+    } catch (error) {
+      setIsSubmitting(false);
+      setError(
+        error.message ||
+          "Network error occurred. Please check your connection and try again."
+      );
+    }
   };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
