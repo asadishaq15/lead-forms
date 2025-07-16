@@ -12,6 +12,7 @@ import DepoProveraLeadForm from './Components/Form4';
 import EvolveTechInnovationsForm from './Components/EvolveForm';
 import AcaKkCplForm from './Components/kBBForm5';
 import AdvanceGrow4 from './Components/AdvanceGrow4';
+import EnvironEduForm from './Components/EnvironEduForm'; // Import the new form
 
 function App() {
   return (
@@ -28,7 +29,7 @@ function App() {
         <Route path="/leads5" element={<KBBSalesLeadForm4 />} />
         <Route path="/leads6" element={<AcaKkCplForm />} />
         <Route path="/leads7" element={<AdvanceGrow4 />} />
-   
+        <Route path="/environedu" element={<EnvironEduForm />} /> {/* Add the new route */}
       </Routes>
     </Router>
   );
