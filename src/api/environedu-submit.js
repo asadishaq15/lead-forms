@@ -3,7 +3,7 @@
 import fetch from 'node-fetch';
 
 export default async function handler(req, res) {
-  // Accept both GET and POST methods, but convert POST to GET for the external API
+  // Accept both GET and POST methods
   const formData = req.method === 'GET' ? req.query : req.body;
 
   try {
@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     // Map form fields to API fields
     if (formData.first_name) params.append('fname', formData.first_name);
     if (formData.last_name) params.append('lname', formData.last_name);
-    if (formData.city) params.append('city', formData.city);
+    if (formData.city) params.append('city', formData.city || 'Not Provided');
     if (formData.state) params.append('state', formData.state);
     if (formData.zip) params.append('zip', formData.zip);
     if (formData.email) params.append('email', formData.email);
@@ -26,21 +26,25 @@ export default async function handler(req, res) {
     // Add tracking parameters
     if (formData.jornaya_leadid) params.append('LeadID', formData.jornaya_leadid);
     
-    // Add more required fields with default values if not provided
-    if (!params.has('OptInIp')) params.append('OptInIp', req.headers['x-forwarded-for'] || '127.0.0.1');
-    if (!params.has('subid')) params.append('subid', formData.traffic_source_id || '74');
-    if (!params.has('lid')) params.append('lid', '20250714001');
-    if (!params.has('SignupURL')) params.append('SignupURL', req.headers.referer || 'lead-forms-ten.vercel.app');
-    if (!params.has('ConsentURL')) params.append('ConsentURL', req.headers.referer || 'lead-forms-ten.vercel.app');
-    if (!params.has('xxTrustedFormToken')) params.append('xxTrustedFormToken', 'https://cert.trustedform.com/blank');
-    if (!params.has('RecordID')) params.append('RecordID', Date.now().toString());
+    // Add required fields with default values if not provided
+    params.append('OptInIp', req.headers['x-forwarded-for'] || '127.0.0.1');
+    params.append('subid', formData.traffic_source_id || '74');
+    params.append('lid', '20250714001');
+    params.append('SignupURL', req.headers.referer || 'lead-forms-ten.vercel.app');
+    params.append('ConsentURL', req.headers.referer || 'lead-forms-ten.vercel.app');
+    params.append('xxTrustedFormToken', 'https://cert.trustedform.com/blank');
+    params.append('RecordID', Date.now().toString());
 
-    // Compose the EnvironEdu API URL with the correct endpoint
+    // Compose the EnvironEdu API URL
     const url = `https://environedu.com/webpost/post?${params.toString()}`;
+    
+    console.log("Sending request to:", url);
 
     // Make the GET request to EnvironEdu
     const response = await fetch(url);
     const responseText = await response.text();
+    
+    console.log("Response from EnvironEdu:", responseText);
 
     // If response is not ok or contains common error phrases
     if (responseText.includes('Failed for selected list ID') || !response.ok) {

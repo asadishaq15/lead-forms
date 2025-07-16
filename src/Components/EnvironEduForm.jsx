@@ -141,79 +141,101 @@ export default function EnvironEduForm() {
     e.preventDefault();
     setError(null);
     setSuccess(false);
-
-    // Validate required fields
-    const requiredFields = ["fname", "lname", "city", "state", "zip", "p1", "date_of_birth"];
-    for (const field of requiredFields) {
-      if (!formData[field]) {
-        setError(`${field.replace(/_/g, " ")} is required.`);
+    setIsSubmitting(true);
+  
+    try {
+      // Create a complete API data object
+      const apiData = {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        caller_id: formData.caller_id,
+        state: formData.state,
+        zip: formData.zip,
+        dob: formData.dob,
+        jornaya_leadid: formData.jornaya_leadid,
+        lead_token: formData.lead_token,
+        traffic_source_id: formData.traffic_source_id,
+        // Ensure city is included (can be empty)
+        city: "Not Provided"
+      };
+  
+      // Validate required fields
+      if (!apiData.first_name || !apiData.last_name || !apiData.state || 
+          !apiData.zip || !apiData.caller_id || !apiData.dob || !apiData.jornaya_leadid) {
+        setError("Please fill in all required fields.");
+        setIsSubmitting(false);
         return;
       }
-    }
-
-    // Validate specific field formats
-    if (!isValidPhone(formData.p1)) {
-      setError("Please enter a valid 10-digit phone number without any formatting.");
-      return;
-    }
-
-    if (!isValidZip(formData.zip)) {
-      setError("Please enter a valid 5-digit ZIP code.");
-      return;
-    }
-
-    if (!isValidEmail(formData.email)) {
-      setError("Please enter a valid email address or leave it blank.");
-      return;
-    }
-
-    if (!isValidDate(formData.date_of_birth)) {
-      setError("Please enter a valid date of birth in YYYY-MM-DD format.");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      // Create URL with query parameters
-      const response = await fetch(`/api/environedu-submit`, {
+  
+      // Validate phone number: 10 digits, no formatting
+      if (!/^\d{10}$/.test(apiData.caller_id)) {
+        setError("Please enter a valid 10-digit phone number (no dashes or spaces).");
+        setIsSubmitting(false);
+        return;
+      }
+    
+      // Validate ZIP code
+      if (!/^\d{5}$/.test(apiData.zip)) {
+        setError("Please enter a valid 5-digit ZIP code.");
+        setIsSubmitting(false);
+        return;
+      }
+    
+      // Validate email format (if provided)
+      if (apiData.email && !/\S+@\S+\.\S+/.test(apiData.email)) {
+        setError("Please enter a valid email address.");
+        setIsSubmitting(false);
+        return;
+      }
+    
+      // Validate date of birth
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(apiData.dob)) {
+        setError("Please enter a valid date in YYYY-MM-DD format.");
+        setIsSubmitting(false);
+        return;
+      }
+  
+      console.log("Submitting data:", apiData);
+  
+      // Send the data to your API endpoint
+      const response = await fetch('/api/environedu-submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(apiData),
       });
-
+  
       const data = await response.text();
-
+      console.log("Response:", data);
+  
+      setIsSubmitting(false);
+  
       if (response.ok) {
         setSuccess(true);
-        // Reset form fields after successful submission
-        setFormData({
-          ...formData,
-          fname: "",
-          lname: "",
-          a1: "",
-          a2: "",
-          city: "",
+        // Clear form after successful submission
+        setFormData(prev => ({
+          ...prev,
+          first_name: "",
+          last_name: "",
           state: "",
           zip: "",
           email: "",
-          p1: "",
-          date_of_birth: "",
+          caller_id: "",
           dob: "",
-          gender: "",
-          LeadID: uuidv4(),
-          RecordID: Math.floor(Math.random() * 1000000).toString(),
-          lid: getCurrentListId(),
-        });
+          jornaya_leadid: "",
+        }));
       } else {
-        setError(`Submission failed: ${data}`);
+        setError(data || "Failed to submit lead. Please check your details or try again.");
       }
-    } catch (err) {
-      setError(`Network error: ${err.message}`);
-    } finally {
+    } catch (error) {
+      console.error("Form submission error:", error);
       setIsSubmitting(false);
+      setError(
+        error.message ||
+        "Network error occurred. Please check your connection and try again."
+      );
     }
   };
 
