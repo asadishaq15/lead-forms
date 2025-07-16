@@ -146,22 +146,28 @@ export default function EnvironEduForm() {
     try {
       // Create a complete API data object
       const apiData = {
-        first_name: formData.first_name,
-        last_name: formData.last_name,
+        first_name: formData.fname,
+        last_name: formData.lname,
         email: formData.email,
-        caller_id: formData.caller_id,
+        caller_id: formData.p1,
         state: formData.state,
         zip: formData.zip,
-        dob: formData.dob,
-        jornaya_leadid: formData.jornaya_leadid,
-        lead_token: formData.lead_token,
-        traffic_source_id: formData.traffic_source_id,
-        // Ensure city is included (can be empty)
-        city: "Not Provided"
+        dob: formData.date_of_birth,
+        jornaya_leadid: formData.LeadID, // Using LeadID as jornaya_leadid
+        lead_token: formData.xxTrustedFormToken, // Using xxTrustedFormToken as lead_token
+        traffic_source_id: formData.subid, // Using subid as traffic_source_id
+        city: formData.city || "Not Provided"
       };
   
+  
       // Validate required fields
-   
+      if (!apiData.first_name || !apiData.last_name || !apiData.state || 
+          !apiData.zip || !apiData.caller_id || !apiData.dob || !apiData.jornaya_leadid) {
+        setError("Please fill in all required fields.");
+        setIsSubmitting(false);
+        return;
+      }
+  
       // Validate phone number: 10 digits, no formatting
       if (!/^\d{10}$/.test(apiData.caller_id)) {
         setError("Please enter a valid 10-digit phone number (no dashes or spaces).");
