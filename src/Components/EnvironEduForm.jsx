@@ -161,13 +161,7 @@ export default function EnvironEduForm() {
       };
   
       // Validate required fields
-      if (!apiData.first_name || !apiData.last_name || !apiData.state || 
-          !apiData.zip || !apiData.caller_id || !apiData.dob || !apiData.jornaya_leadid) {
-        setError("Please fill in all required fields.");
-        setIsSubmitting(false);
-        return;
-      }
-  
+   
       // Validate phone number: 10 digits, no formatting
       if (!/^\d{10}$/.test(apiData.caller_id)) {
         setError("Please enter a valid 10-digit phone number (no dashes or spaces).");
