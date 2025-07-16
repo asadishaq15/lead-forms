@@ -34,115 +34,92 @@ const EvolveTechInnovationsForm = () => {
     setSuccess(false);
     setIsSubmitting(true);
   
-    // Required fields for EnvironEdu
-    const requiredFields = [
-      "fname",
-      "lname",
-      "city",
-      "state",
-      "zip",
-      "p1",
-      "date_of_birth", // or "dob" if that's your field name
-      // Add tracking fields if needed
-      "LeadID",
-      "OptInIp",
-      "subid",
-      "lid",
-      "SignupURL",
-      "ConsentURL",
-      "xxTrustedFormToken",
-      "RecordID"
-    ];
+    try {
+      // Convert form data to match API requirements
+      const apiData = {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        caller_id: formData.caller_id,
+        state: formData.state,
+        zip: formData.zip,
+        dob: formData.dob,
+        jornaya_leadid: formData.jornaya_leadid,
+        lead_token: formData.lead_token,
+        traffic_source_id: formData.traffic_source_id
+      };
   
-    for (const field of requiredFields) {
-      if (!formData[field]) {
-        setError(`Field "${field.replace(/_/g, " ")}" is required.`);
+      // Validate required fields
+      if (!apiData.first_name || !apiData.last_name || !apiData.state || 
+          !apiData.zip || !apiData.caller_id || !apiData.dob) {
+        setError("Please fill in all required fields.");
         setIsSubmitting(false);
         return;
       }
-    }
   
-    // Validate phone number: 10 digits, no formatting
-    if (!/^\d{10}$/.test(formData.p1)) {
-      setError("Please enter a valid 10-digit phone number (no dashes or spaces).");
-      setIsSubmitting(false);
-      return;
-    }
+      // Validate phone number: 10 digits, no formatting
+      if (!/^\d{10}$/.test(apiData.caller_id)) {
+        setError("Please enter a valid 10-digit phone number (no dashes or spaces).");
+        setIsSubmitting(false);
+        return;
+      }
+    
+      // Validate ZIP code
+      if (!/^\d{5}$/.test(apiData.zip)) {
+        setError("Please enter a valid 5-digit ZIP code.");
+        setIsSubmitting(false);
+        return;
+      }
+    
+      // Validate email format (if provided)
+      if (apiData.email && !/\S+@\S+\.\S+/.test(apiData.email)) {
+        setError("Please enter a valid email address.");
+        setIsSubmitting(false);
+        return;
+      }
+    
+      // Validate date of birth
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(apiData.dob)) {
+        setError("Please enter a valid date in YYYY-MM-DD format.");
+        setIsSubmitting(false);
+        return;
+      }
   
-    // Validate ZIP code
-    if (!/^\d{5}$/.test(formData.zip)) {
-      setError("Please enter a valid 5-digit ZIP code.");
-      setIsSubmitting(false);
-      return;
-    }
-  
-    // Validate email format (if provided)
-    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-      setError("Please enter a valid email address.");
-      setIsSubmitting(false);
-      return;
-    }
-  
-    // Validate date of birth
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(formData.date_of_birth)) {
-      setError("Please enter a valid date in YYYY-MM-DD format.");
-      setIsSubmitting(false);
-      return;
-    }
-  
-    // Always set dob to match date_of_birth if required
-    formData.dob = formData.date_of_birth;
-  
-    // Construct the query string for your proxy
-    const params = new URLSearchParams(formData);
-    const url = `/api/environedu-submit?${params.toString()}`;
-  
-    try {
-      const response = await fetch(url, {
-        method: "GET",
+      // Send the data to your API endpoint
+      const response = await fetch('/api/environedu-submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(apiData),
       });
   
-      const data = await response.text(); // API may return text/html
+      const data = await response.text();
   
       setIsSubmitting(false);
   
-      // Simple success check, you can improve this based on actual API response
-      if (
-        response.ok &&
-        !data.includes("Failed for selected list ID") &&
-        !data.toLowerCase().includes("error")
-      ) {
+      if (response.ok) {
         setSuccess(true);
         // Clear form after successful submission
         setFormData(prev => ({
           ...prev,
-          fname: "",
-          lname: "",
-          a1: "",
-          a2: "",
-          city: "",
+          first_name: "",
+          last_name: "",
           state: "",
           zip: "",
           email: "",
-          p1: "",
-          date_of_birth: "",
+          caller_id: "",
           dob: "",
-          gender: "",
-          LeadID: "", // regenerate if needed
-          OptInIp: "", // regenerate if needed
-          RecordID: "", // regenerate if needed
-          // ...other tracking fields as needed
+          jornaya_leadid: "",
         }));
       } else {
-        setError(
-          "Failed to submit lead. Please check your details or try again."
-        );
+        setError(data || "Failed to submit lead. Please check your details or try again.");
       }
     } catch (error) {
       setIsSubmitting(false);
       setError(
         error.message ||
-          "Network error occurred. Please check your connection and try again."
+        "Network error occurred. Please check your connection and try again."
       );
     }
   };
