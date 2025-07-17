@@ -57,7 +57,7 @@ const states = [
 ];
 
 // Generate a list ID in format YYYYMMDDXXX where XXX is a 3-digit number
-function getCurrentListId() {
+function generateListId() {
   const today = new Date();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, '0');
@@ -79,16 +79,16 @@ export default function EnvironEduForm() {
     email: "",
     p1: "",
     date_of_birth: "",
-    dob: "", // Duplicate of date_of_birth
+    dob: "", 
     gender: "",
-    LeadID: uuidv4(), // Generate a unique LeadID
+    LeadID: uuidv4(),
     OptInIp: "",
-    subid: "74", // Default subid from example
-    lid: getCurrentListId(), // Generate unique list ID for each form load
-    SignupURL: window.location.href || "jobfindernews.com", // Use actual URL when possible
-    ConsentURL: window.location.href || "jobfindernews.com", // Use actual URL when possible
-    xxTrustedFormToken: "https://cert.trustedform.com/blank", // Default blank token
-    RecordID: Math.floor(Math.random() * 1000000).toString(), // Random record ID
+    subid: "74",
+    lid: generateListId(),
+    SignupURL: window.location.hostname || "lead-forms-ten.vercel.app",
+    ConsentURL: window.location.hostname || "lead-forms-ten.vercel.app",
+    xxTrustedFormToken: "https://cert.trustedform.com/blank",
+    RecordID: Math.floor(Math.random() * 1000000).toString(),
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -136,6 +136,28 @@ export default function EnvironEduForm() {
     }
   };
 
+  // Reset form with a new unique ID for each submission
+  const resetForm = () => {
+    setFormData({
+      ...formData,
+      fname: "",
+      lname: "",
+      a1: "",
+      a2: "",
+      city: "",
+      state: "",
+      zip: "",
+      email: "",
+      p1: "",
+      date_of_birth: "",
+      dob: "",
+      gender: "",
+      LeadID: uuidv4(),
+      lid: generateListId(),
+      RecordID: Math.floor(Math.random() * 1000000).toString(),
+    });
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -144,59 +166,75 @@ export default function EnvironEduForm() {
     setIsSubmitting(true);
   
     try {
-      // Generate a new LeadID and lid for each submission
-      const submissionData = {
-        ...formData,
-        LeadID: uuidv4(),
-        lid: getCurrentListId(),
-        RecordID: Date.now().toString(),
+      // Use formData directly - this matches the expected API field names
+      const apiData = {
+        fname: formData.fname,
+        lname: formData.lname,
+        a1: formData.a1,
+        a2: formData.a2,
+        city: formData.city,
+        state: formData.state,
+        zip: formData.zip,
+        email: formData.email,
+        p1: formData.p1,
+        date_of_birth: formData.date_of_birth,
+        dob: formData.dob,
+        gender: formData.gender,
+        LeadID: formData.LeadID,
+        OptInIp: formData.OptInIp,
+        subid: formData.subid,
+        lid: formData.lid,
+        SignupURL: formData.SignupURL,
+        ConsentURL: formData.ConsentURL,
+        xxTrustedFormToken: formData.xxTrustedFormToken,
+        RecordID: formData.RecordID
       };
-
+  
       // Validate required fields
-      if (!submissionData.fname || !submissionData.lname || !submissionData.state || 
-          !submissionData.zip || !submissionData.p1 || !submissionData.date_of_birth || !submissionData.city) {
+      if (!apiData.fname || !apiData.lname || !apiData.state || 
+          !apiData.zip || !apiData.p1 || !apiData.date_of_birth || !apiData.city) {
         setError("Please fill in all required fields.");
         setIsSubmitting(false);
         return;
       }
   
       // Validate phone number: 10 digits, no formatting
-      if (!/^\d{10}$/.test(submissionData.p1)) {
+      if (!/^\d{10}$/.test(apiData.p1)) {
         setError("Please enter a valid 10-digit phone number (no dashes or spaces).");
         setIsSubmitting(false);
         return;
       }
     
       // Validate ZIP code
-      if (!/^\d{5}$/.test(submissionData.zip)) {
+      if (!/^\d{5}$/.test(apiData.zip)) {
         setError("Please enter a valid 5-digit ZIP code.");
         setIsSubmitting(false);
         return;
       }
     
       // Validate email format (if provided)
-      if (submissionData.email && !/\S+@\S+\.\S+/.test(submissionData.email)) {
+      if (apiData.email && !/\S+@\S+\.\S+/.test(apiData.email)) {
         setError("Please enter a valid email address.");
         setIsSubmitting(false);
         return;
       }
     
       // Validate date of birth
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(submissionData.date_of_birth)) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(apiData.date_of_birth)) {
         setError("Please enter a valid date in YYYY-MM-DD format.");
         setIsSubmitting(false);
         return;
       }
   
-      console.log("Submitting data:", submissionData);
+      console.log("Submitting data:", apiData);
   
-      // Send the complete form data to the API endpoint
+      // Send the data to your API endpoint
       const response = await fetch('/api/environedu-submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(submissionData),
+        body: JSON.stringify(apiData),
       });
   
       const data = await response.text();
@@ -206,29 +244,8 @@ export default function EnvironEduForm() {
   
       if (response.ok) {
         setSuccess(true);
-        // Clear form after successful submission
-        setFormData({
-          fname: "",
-          lname: "",
-          a1: "",
-          a2: "",
-          city: "",
-          state: "",
-          zip: "",
-          email: "",
-          p1: "",
-          date_of_birth: "",
-          dob: "",
-          gender: "",
-          LeadID: uuidv4(),
-          OptInIp: formData.OptInIp, // Keep IP address
-          subid: "74",
-          lid: getCurrentListId(),
-          SignupURL: window.location.href || "jobfindernews.com",
-          ConsentURL: window.location.href || "jobfindernews.com",
-          xxTrustedFormToken: "https://cert.trustedform.com/blank",
-          RecordID: Math.floor(Math.random() * 1000000).toString(),
-        });
+        // Reset form after successful submission
+        resetForm();
       } else {
         setError(data || "Failed to submit lead. Please check your details or try again.");
       }
