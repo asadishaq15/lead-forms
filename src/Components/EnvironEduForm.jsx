@@ -252,7 +252,7 @@ export default function EnvironEduForm() {
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 py-8 px-6">
           <h2 className="text-center text-3xl font-extrabold text-white">
-            EnvironEdu Registration
+            EDU 1 & 2 Form
           </h2>
           <p className="mt-2 text-center text-lg text-blue-100">
             Complete the form below to register
