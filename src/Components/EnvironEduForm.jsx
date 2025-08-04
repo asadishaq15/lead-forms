@@ -73,7 +73,7 @@ export default function EnvironEduForm() {
     LeadID: uuidv4(), // Generate a unique LeadID
     OptInIp: "",
     subid: "74", // Default subid from example
-    lid:"8503339547", // Generate today's list ID
+    lid:20250714001, // Generate today's list ID
     SignupURL: "jobfindernews.com", // Default from example
     ConsentURL: "jobfindernews.com", // Default from example
     xxTrustedFormToken: "https://cert.trustedform.com/a1265e943029421f3fae37fc45fd4bd04a050400", // Default from example
