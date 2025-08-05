@@ -8,22 +8,22 @@ export default async function handler(req, res) {
   }
 
   const formData = req.body;
+  console.log("Received form data:", formData);
 
   try {
     // Create a new URLSearchParams object for the query string
     const params = new URLSearchParams();
     
-    // Map frontend field names to EnvironEdu API field names
-    // Handle required fields directly
-    params.append('fname', formData.first_name || formData.fname || '');
-    params.append('lname', formData.last_name || formData.lname || '');
+    // Map all required fields from the form data to EnvironEdu API parameters
+    params.append('fname', formData.first_name || '');
+    params.append('lname', formData.last_name || '');
     params.append('city', formData.city || '');
     params.append('state', formData.state || '');
     params.append('zip', formData.zip || '');
     params.append('email', formData.email || '');
-    params.append('p1', formData.caller_id || formData.p1 || '');
-    params.append('date_of_birth', formData.dob || formData.date_of_birth || '');
-    params.append('dob', formData.dob || formData.date_of_birth || '');
+    params.append('p1', formData.caller_id || '');
+    params.append('date_of_birth', formData.dob || '');
+    params.append('dob', formData.dob || '');
     
     // Optional fields
     params.append('a1', formData.a1 || '');
@@ -31,19 +31,27 @@ export default async function handler(req, res) {
     params.append('gender', formData.gender || '');
     
     // Tracking parameters
-    params.append('LeadID', formData.jornaya_leadid || formData.LeadID || '');
-    params.append('OptInIp', formData.OptInIp || req.headers['x-forwarded-for'] || '127.0.0.1');
-    params.append('subid', formData.traffic_source_id || formData.subid || '74');
+    params.append('LeadID', formData.jornaya_leadid || '');
+    params.append('OptInIp', formData.OptInIp || req.headers['x-forwarded-for'] || '34.228.200.245');
+    params.append('subid', formData.traffic_source_id || '74');
     
-    // Critical fix - ensure we have a valid list ID
-    const lid = formData.lid || '20250714001'; // Use default if not provided
+    // Important: Add a valid list ID
+    // Generate a list ID in format YYYYMMDDXXX where XXX is a 3-digit number
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const randomNum = Math.floor(Math.random() * 999) + 1;
+    const formattedRandomNum = String(randomNum).padStart(3, '0');
+    const lid = `${year}${month}${day}${formattedRandomNum}`;
+    
     params.append('lid', lid);
     
     // Other required tracking parameters
-    params.append('SignupURL', formData.SignupURL || 'jobfindernews.com');
-    params.append('ConsentURL', formData.ConsentURL || 'jobfindernews.com');
-    params.append('xxTrustedFormToken', formData.lead_token || formData.xxTrustedFormToken || 'https://cert.trustedform.com/a1265e943029421f3fae37fc45fd4bd04a050400');
-    params.append('RecordID', formData.RecordID || Math.floor(Math.random() * 1000000).toString());
+    params.append('SignupURL', 'jobfindernews.com');
+    params.append('ConsentURL', 'jobfindernews.com');
+    params.append('xxTrustedFormToken', formData.lead_token || 'https://cert.trustedform.com/a1265e943029421f3fae37fc45fd4bd04a050400');
+    params.append('RecordID', Math.floor(Math.random() * 1000000).toString());
     
     // Compose the EnvironEdu API URL
     const url = `https://environedu.com/webpost/post?${params.toString()}`;

@@ -146,31 +146,27 @@ export default function EnvironEduForm() {
     try {
       // Create a complete API data object
       const apiData = {
-        fname: formData.fname,
-        lname: formData.lname,
+        first_name: formData.fname,
+        last_name: formData.lname,
         email: formData.email,
-        p1: formData.p1,
+        caller_id: formData.p1,
         state: formData.state,
         zip: formData.zip,
-        date_of_birth: formData.date_of_birth,
+        city: formData.city || "",
         dob: formData.date_of_birth,
-        city: formData.city || "Not Provided",
+        jornaya_leadid: formData.LeadID,
+        lead_token: formData.xxTrustedFormToken,
+        traffic_source_id: formData.subid,
+        // Include address fields if needed
         a1: formData.a1 || "",
-        a2: formData.a2 || "",
-        gender: formData.gender || "",
-        LeadID: formData.LeadID,
-        OptInIp: formData.OptInIp,
-        subid: formData.subid,
-        lid: formData.lid,
-        SignupURL: formData.SignupURL || "jobfindernews.com",
-        ConsentURL: formData.ConsentURL || "jobfindernews.com",
-        xxTrustedFormToken: formData.xxTrustedFormToken,
-        RecordID: formData.RecordID
+        a2: formData.a2 || ""
       };
+  
+      console.log("Form data being submitted:", apiData);
   
       // Validate required fields
       if (!apiData.first_name || !apiData.last_name || !apiData.state || 
-          !apiData.zip || !apiData.caller_id || !apiData.dob || !apiData.jornaya_leadid) {
+          !apiData.zip || !apiData.caller_id || !apiData.dob) {
         setError("Please fill in all required fields.");
         setIsSubmitting(false);
         return;
@@ -225,14 +221,20 @@ export default function EnvironEduForm() {
         // Clear form after successful submission
         setFormData(prev => ({
           ...prev,
-          first_name: "",
-          last_name: "",
+          fname: "",
+          lname: "",
           state: "",
           zip: "",
           email: "",
-          caller_id: "",
+          p1: "",
+          date_of_birth: "",
           dob: "",
-          jornaya_leadid: "",
+          city: "",
+          a1: "",
+          a2: "",
+          gender: "",
+          // Keep the tracking IDs
+          LeadID: uuidv4(), // Generate a new LeadID for next submission
         }));
       } else {
         setError(data || "Failed to submit lead. Please check your details or try again.");
@@ -255,6 +257,10 @@ export default function EnvironEduForm() {
     }
   }, [success]);
 
+  useEffect(() => {
+    console.log("Current form data:", formData);
+  }, [formData]);
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
