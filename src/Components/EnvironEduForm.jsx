@@ -83,7 +83,45 @@ export default function EnvironEduForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
-
+  function buildQueryString(data) {
+    const params = new URLSearchParams();
+    params.append('fname', data.first_name);
+    params.append('lname', data.last_name);
+    params.append('a1', data.a1 || "");
+    params.append('a2', data.a2 || "");
+    params.append('city', data.city || "");
+    params.append('state', data.state || "");
+    params.append('zip', data.zip || "");
+    params.append('email', data.email || "");
+    params.append('p1', data.caller_id || "");
+    params.append('date_of_birth', data.dob || "");
+    params.append('dob', data.dob || "");
+    params.append('gender', data.gender || "");
+    params.append('LeadID', data.LeadID || "");
+    params.append('OptInIp', data.OptInIp || "");
+    params.append('subid', data.subid || "");
+    params.append('lid', data.lid || "");
+    params.append('SignupURL', data.SignupURL || "");
+    params.append('ConsentURL', data.ConsentURL || "");
+    params.append('xxTrustedFormToken', data.xxTrustedFormToken || "");
+    params.append('RecordID', data.RecordID || "");
+    return params.toString();
+  }
+  
+  // Helper to wrap a string at N characters (e.g., 80)
+  function wrapString(str, width = 80) {
+    let result = '';
+    while (str.length > width) {
+      // Find the last '&' within the width to break lines at parameter boundaries
+      let idx = str.lastIndexOf('&', width);
+      if (idx === -1) idx = width; // If no '&', just split at width
+      result += str.slice(0, idx + 1) + '\n';
+      str = str.slice(idx + 1);
+    }
+    result += str;
+    return result;
+  }
+  
   // Function to get the current IP address
   useEffect(() => {
     const getIpAddress = async () => {
@@ -200,8 +238,25 @@ export default function EnvironEduForm() {
         setIsSubmitting(false);
         return;
       }
+      const environUrlBase = "https://environedu.com/webpost/post?";
+const environUrlQuery = buildQueryString({
+  ...apiData,
+  LeadID: formData.LeadID,
+  OptInIp: formData.OptInIp,
+  subid: formData.subid,
+  lid: formData.lid,
+  SignupURL: formData.SignupURL,
+  ConsentURL: formData.ConsentURL,
+  xxTrustedFormToken: formData.xxTrustedFormToken,
+  RecordID: formData.RecordID,
+});
+console.log(
+  'Full URL\n' +
+  environUrlBase + '\n' +
+  wrapString(environUrlBase + environUrlQuery)
+);
   
-      console.log("Submitting data:", apiData);
+      
   
       // Send the data to your API endpoint
       const response = await fetch('/api/environedu-submit', {
