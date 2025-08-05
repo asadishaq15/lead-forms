@@ -146,19 +146,27 @@ export default function EnvironEduForm() {
     try {
       // Create a complete API data object
       const apiData = {
-        first_name: formData.fname,
-        last_name: formData.lname,
+        fname: formData.fname,
+        lname: formData.lname,
         email: formData.email,
-        caller_id: formData.p1,
+        p1: formData.p1,
         state: formData.state,
         zip: formData.zip,
+        date_of_birth: formData.date_of_birth,
         dob: formData.date_of_birth,
-        jornaya_leadid: formData.LeadID, // Using LeadID as jornaya_leadid
-        lead_token: formData.xxTrustedFormToken, // Using xxTrustedFormToken as lead_token
-        traffic_source_id: formData.subid, // Using subid as traffic_source_id
-        city: formData.city || "Not Provided"
+        city: formData.city || "Not Provided",
+        a1: formData.a1 || "",
+        a2: formData.a2 || "",
+        gender: formData.gender || "",
+        LeadID: formData.LeadID,
+        OptInIp: formData.OptInIp,
+        subid: formData.subid,
+        lid: formData.lid,
+        SignupURL: formData.SignupURL || "jobfindernews.com",
+        ConsentURL: formData.ConsentURL || "jobfindernews.com",
+        xxTrustedFormToken: formData.xxTrustedFormToken,
+        RecordID: formData.RecordID
       };
-  
   
       // Validate required fields
       if (!apiData.first_name || !apiData.last_name || !apiData.state || 
