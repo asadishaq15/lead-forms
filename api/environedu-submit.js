@@ -41,9 +41,16 @@ export default async function handler(req, res) {
     params.append('xxTrustedFormToken', formData.xxTrustedFormToken || formData.lead_token || '');
     params.append('RecordID', formData.RecordID || Math.floor(Math.random() * 1000000).toString());
 
-    // Compose the EnvironEdu API URL
     const url = `https://environedu.com/webpost/post?${params.toString()}`;
-    console.log("Sending request to:", url);
+
+    // Log the full URL with each param on a new line for easy reading
+    const [base, query] = url.split('?');
+    console.log(
+      base + '?\n' +
+      decodeURIComponent(query)
+        .split('&')
+        .join('\n')
+    );
 
     // Make the GET request
     const response = await fetch(url);
