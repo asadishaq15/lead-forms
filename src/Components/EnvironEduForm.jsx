@@ -159,7 +159,8 @@ export default function EnvironEduForm() {
         traffic_source_id: formData.subid,
         // Include address fields if needed
         a1: formData.a1 || "",
-        a2: formData.a2 || ""
+        a2: formData.a2 || "",
+        lid: "20250714001",
       };
   
       console.log("Form data being submitted:", apiData);
@@ -260,7 +261,7 @@ export default function EnvironEduForm() {
   useEffect(() => {
     console.log("Current form data:", formData);
   }, [formData]);
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
