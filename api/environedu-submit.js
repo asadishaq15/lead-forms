@@ -41,9 +41,10 @@ export default async function handler(req, res) {
     params.append('xxTrustedFormToken', formData.xxTrustedFormToken || formData.lead_token || '');
     params.append('RecordID', formData.RecordID || Math.floor(Math.random() * 1000000).toString());
 
+    // Compose the EnvironEdu API URL
     const url = `https://environedu.com/webpost/post?${params.toString()}`;
 
-    // Log the full URL with each param on a new line for easy reading
+    // Print the full URL with each param on a new line for clarity
     const [base, query] = url.split('?');
     console.log(
       base + '?\n' +
@@ -59,11 +60,12 @@ export default async function handler(req, res) {
     console.log("Response from EnvironEdu:", responseText);
 
     // Basic error check
-    if (!response.ok ||
-        responseText.includes('Failed for selected list ID') ||
-        responseText.includes('error') ||
-        responseText.includes('Error') ||
-        responseText.includes('No valid list ID found')) {
+    if (
+      !response.ok ||
+      responseText.includes('Failed for selected list ID') ||
+      responseText.toLowerCase().includes('error') ||
+      responseText.includes('No valid list ID found')
+    ) {
       return res.status(400).send(responseText);
     }
 
