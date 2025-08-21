@@ -253,24 +253,17 @@ const EvolveTechAutoInsuranceForm = () => {
   const maritalStatusOptions = [
     { value: "single", label: "Single" },
     { value: "married", label: "Married" },
-    { value: "divorced", label: "Divorced" },
-    { value: "separated", label: "Separated" },
-    { value: "widowed", label: "Widowed" },
   ];
-
   const residenceStatusOptions = [
     { value: "own", label: "Own" },
     { value: "rent", label: "Rent" },
-    { value: "live_with_parents", label: "Live With Parents" },
-    { value: "dormitory", label: "Dormitory" },
-    { value: "choice_not_listed", label: "Choice Not Listed" },
   ];
 
   const creditRatingOptions = [
     { value: "excellent", label: "Excellent" },
     { value: "good", label: "Good" },
-    { value: "fair", label: "Fair" },
-    { value: "poor", label: "Poor" },
+    { value: "some_problems", label: "Some Problems" },
+    { value: "major_problems", label: "Major Problems" },
   ];
 
   const carMakes = [
@@ -282,7 +275,6 @@ const EvolveTechAutoInsuranceForm = () => {
   ];
 
   const incidentTypeOptions = [
-    { value: "", label: "No Incidents" },
     { value: "Intoxic", label: "DUI" },
     { value: "Other", label: "Other" },
   ];
@@ -670,23 +662,44 @@ const EvolveTechAutoInsuranceForm = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                SR22 Required
-              </label>
-              <div className="mt-2">
-                <label className="inline-flex items-center">
-                  <input
-                    type="checkbox"
-                    name="driver1_sr22_required"
-                    checked={formData.driver1_sr22_required}
-                    onChange={handleChange}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 rounded"
-                  />
-                  <span className="ml-2 text-gray-700 text-sm">Yes, SR22 is required</span>
-                </label>
-              </div>
-            </div>
-            
+  <label className="block text-sm font-medium text-gray-700">
+    SR22 Filing
+  </label>
+  <div className="mt-2 flex gap-4">
+    <label className="inline-flex items-center">
+      <input
+        type="radio"
+        name="sr22"
+        value={true}
+        checked={formData.sr22 === true}
+        onChange={() =>
+          setFormData((prev) => ({
+            ...prev,
+            sr22: true,
+          }))
+        }
+        className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+      />
+      <span className="ml-2 text-gray-700 text-sm">Yes</span>
+    </label>
+    <label className="inline-flex items-center">
+      <input
+        type="radio"
+        name="sr22"
+        value={false}
+        checked={formData.sr22 === false}
+        onChange={() =>
+          setFormData((prev) => ({
+            ...prev,
+            sr22: false,
+          }))
+        }
+        className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+      />
+      <span className="ml-2 text-gray-700 text-sm">No</span>
+    </label>
+  </div>
+</div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Incident Type
