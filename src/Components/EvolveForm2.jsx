@@ -275,23 +275,37 @@ const EvolveTechAutoInsuranceForm = () => {
   ];
 
   const incidentTypeOptions = [
-    { value: "Intoxic", label: "DUI" },
+    { value: "Intoxic", label: "Intoxic" },
     { value: "Other", label: "Other" },
   ];
 
   const insuranceOptions = [
-    { value: "UNKNOWN", label: "Uninsured" },
-    { value: "OTHER", label: "Insured (Company Unknown)" },
-    { value: "State Farm", label: "State Farm" },
-    { value: "Geico", label: "Geico" },
-    { value: "Progressive", label: "Progressive" },
-    { value: "Allstate", label: "Allstate" },
-    { value: "Liberty Mutual", label: "Liberty Mutual" },
-    { value: "USAA", label: "USAA" },
-    { value: "Farmers", label: "Farmers" },
-    { value: "Nationwide", label: "Nationwide" },
-    { value: "American Family", label: "American Family" },
-    { value: "Travelers", label: "Travelers" },
+    { value: "AAA", label: "AAA" },
+    { value: "ALLSTATE", label: "Allstate" },
+    { value: "AMERICANNATIONAL", label: "American National" },
+    { value: "AMFAM", label: "American Family" },
+    { value: "BRIGHTWAY", label: "Brightway" },
+    { value: "COUNTRYFINANCIA", label: "Country Financial" },
+    { value: "ERIE", label: "Erie" },
+    { value: "FARM_BUREAU", label: "Farm Bureau" },
+    { value: "FARMERS", label: "Farmers" },
+    { value: "GEICO", label: "Geico" },
+    { value: "HARTFORD", label: "Hartford" },
+    { value: "INDEPENDENT", label: "Independent" },
+    { value: "LIBERTY", label: "Liberty Mutual" },
+    { value: "MERCURY", label: "Mercury" },
+    { value: "METLIFE", label: "MetLife" },
+    { value: "MUTOMA", label: "Mutual of Omaha" }, 
+    { value: "NATIONWIDE", label: "Nationwide" },
+    { value: "OTHER", label: "Other" },
+    { value: "PROGRESSIVE", label: "Progressive" },
+    { value: "SAFECO", label: "Safeco" },
+    { value: "SHELTER", label: "Shelter" },
+    { value: "STATEFARM", label: "State Farm" },
+    { value: "TWENTYFIRST_CENTURY", label: "21st Century" },
+    { value: "USHA", label: "US Health Advisors" },
+    { value: "TRAVLERS", label: "Travelers" }, 
+    { value: "UNKNOWN", label: "Unknown" },
   ];
 
   const currentYear = new Date().getFullYear();
