@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 
 const EvolveTechAutoInsuranceForm = () => {
   const [formData, setFormData] = useState({
-    lead_token: "c51dacbf90cd4f1db448b0fe861b6cf4", // Updated to the correct token
+    lead_token: "c51dacbf90cd4f1db448b0fe861b6cf4",
     caller_id: "",
     traffic_source_id: "1039",
     first_name: "",
@@ -23,9 +23,9 @@ const EvolveTechAutoInsuranceForm = () => {
     driver1_credit_rating: "",
     driver1_sr22_required: false,
     ip_address: "",
-    jornaya_leadid: "", // Will be auto-generated
+    jornaya_leadid: "",
     drivers: "1",
-    sr22: false,
+    sr22: "No", // Changed from boolean to string
     incident_type: "",
     insurance: "",
     policy_start_date: ""
@@ -251,19 +251,20 @@ const EvolveTechAutoInsuranceForm = () => {
   ];
 
   const maritalStatusOptions = [
-    { value: "single", label: "Single" },
-    { value: "married", label: "Married" },
+    { value: "Single", label: "Single" },
+    { value: "Married", label: "Married" },
   ];
   const residenceStatusOptions = [
-    { value: "own", label: "Own" },
-    { value: "rent", label: "Rent" },
+    { value: "Own", label: "Own" },
+    { value: "Rent", label: "Rent" },
   ];
+  
 
   const creditRatingOptions = [
-    { value: "excellent", label: "Excellent" },
-    { value: "good", label: "Good" },
-    { value: "some_problems", label: "Some Problems" },
-    { value: "major_problems", label: "Major Problems" },
+    { value: "Excellent", label: "Excellent" },
+    { value: "Good", label: "Good" },
+    { value: "Some Problems", label: "Some Problems" },
+    { value: "Major Problems", label: "Major Problems" },
   ];
 
   const carMakes = [
@@ -406,34 +407,34 @@ const EvolveTechAutoInsuranceForm = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Gender <span className="text-red-500">*</span>
-              </label>
-              <div className="mt-1 flex gap-4">
-                <label className="inline-flex items-center">
-                  <input
-                    type="radio"
-                    name="gender"
-                    value="M"
-                    checked={formData.gender === "M"}
-                    onChange={handleChange}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="ml-2 text-gray-700 text-sm">Male</span>
-                </label>
-                <label className="inline-flex items-center">
-                  <input
-                    type="radio"
-                    name="gender"
-                    value="F"
-                    checked={formData.gender === "F"}
-                    onChange={handleChange}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="ml-2 text-gray-700 text-sm">Female</span>
-                </label>
-              </div>
-            </div>
+  <label className="block text-sm font-medium text-gray-700">
+    Gender <span className="text-red-500">*</span>
+  </label>
+  <div className="mt-1 flex gap-4">
+    <label className="inline-flex items-center">
+      <input
+        type="radio"
+        name="gender"
+        value="Male"
+        checked={formData.gender === "Male"}
+        onChange={handleChange}
+        className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+      />
+      <span className="ml-2 text-gray-700 text-sm">Male</span>
+    </label>
+    <label className="inline-flex items-center">
+      <input
+        type="radio"
+        name="gender"
+        value="Female"
+        checked={formData.gender === "Female"}
+        onChange={handleChange}
+        className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+      />
+      <span className="ml-2 text-gray-700 text-sm">Female</span>
+    </label>
+  </div>
+</div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -684,12 +685,12 @@ const EvolveTechAutoInsuranceForm = () => {
       <input
         type="radio"
         name="sr22"
-        value={true}
-        checked={formData.sr22 === true}
+        value="Yes"
+        checked={formData.sr22 === "Yes"}
         onChange={() =>
           setFormData((prev) => ({
             ...prev,
-            sr22: true,
+            sr22: "Yes",
           }))
         }
         className="h-4 w-4 text-blue-600 focus:ring-blue-500"
@@ -700,17 +701,33 @@ const EvolveTechAutoInsuranceForm = () => {
       <input
         type="radio"
         name="sr22"
-        value={false}
-        checked={formData.sr22 === false}
+        value="No"
+        checked={formData.sr22 === "No"}
         onChange={() =>
           setFormData((prev) => ({
             ...prev,
-            sr22: false,
+            sr22: "No",
           }))
         }
         className="h-4 w-4 text-blue-600 focus:ring-blue-500"
       />
       <span className="ml-2 text-gray-700 text-sm">No</span>
+    </label>
+    <label className="inline-flex items-center">
+      <input
+        type="radio"
+        name="sr22"
+        value="Unknown"
+        checked={formData.sr22 === "Unknown"}
+        onChange={() =>
+          setFormData((prev) => ({
+            ...prev,
+            sr22: "Unknown",
+          }))
+        }
+        className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+      />
+      <span className="ml-2 text-gray-700 text-sm">Unknown</span>
     </label>
   </div>
 </div>
