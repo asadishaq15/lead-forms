@@ -14,6 +14,7 @@ import AcaKkCplForm from './Components/kBBForm5';
 import AdvanceGrow4 from './Components/AdvanceGrow4';
 import EnvironEduForm from './Components/EnvironEduForm'; // Import the new form
 import EvolveTechFinalExpenseForm from './Components/EvolveForm2';
+import SsdiForm from './Components/SsdiForm';
 
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
         <Route path="/leads6" element={<AcaKkCplForm />} />
         <Route path="/leads7" element={<AdvanceGrow4 />} />
         <Route path="/leads8" element={<EvolveTechFinalExpenseForm />} />
+        <Route path="/ssdi" element={<SsdiForm />} />
         <Route path="/environedu" element={<EnvironEduForm />} /> {/* Add the new route */}
       </Routes>
     </Router>
