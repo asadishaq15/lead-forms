@@ -1,47 +1,73 @@
-app.post('/api/enrich', async (req, res) => {
+// api/enrich.js
+export default async function handler(req, res) {
+  // Only accept POST (your frontend posts to /api/enrich)
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
   try {
     const { caller_id, zip_code } = req.body || {};
     if (!caller_id || !zip_code) {
-      return res.status(400).json({ error: 'Missing caller_id or zip_code' });
+      res.status(400).json({ error: 'Missing caller_id or zip_code' });
+      return;
     }
 
-    const sanitizedCallerId = String(caller_id).replace(/[^0-9]/g, '');
-    const ringbaUrl = `https://display.ringba.com/enrich/2785652522243590019?phone=${sanitizedCallerId}&zip_code=${zip_code}`;
+    // sanitize
+    const sanitized = String(caller_id).replace(/[^0-9]/g, '');
+    const base = 'https://display.ringba.com/enrich/2785652522243590019';
+    const url = `${base}?phone=${encodeURIComponent(sanitized)}&zip_code=${encodeURIComponent(zip_code)}`;
 
-    // Try GET first (many enrich endpoints accept GET with query params).
-    // If the API requires POST, change method to "POST" and provide required body/headers per docs.
-    const response = await fetch(ringbaUrl, {
-      method: 'GET', // <- switch to POST if Ringba docs require POST
-      headers: {
-        'Accept': 'application/json',
-        // add Authorization or other headers here if required by Ringba
-      },
-    });
+    // Optional auth from env (set on Vercel dashboard): e.g. "Bearer <token>"
+    const headers = { Accept: 'application/json' };
+    if (process.env.RINGBA_AUTH) {
+      headers.Authorization = process.env.RINGBA_AUTH;
+    }
 
-    const contentType = response.headers.get('content-type') || '';
-    let parsedBody;
+    // perform request (GET because that worked locally)
+    const resp = await fetch(url, { method: 'GET', headers });
+
+    // read body safely
+    const contentType = (resp.headers.get('content-type') || '').toLowerCase();
+    let body;
     if (contentType.includes('application/json')) {
-      // safe JSON parse
-      parsedBody = await response.json();
+      try {
+        body = await resp.json();
+      } catch (e) {
+        // invalid JSON despite content-type
+        const txt = await resp.text().catch(() => '');
+        body = txt;
+      }
     } else {
-      // read as text for debugging
-      parsedBody = await response.text();
+      // often returns text that contains JSON — try to parse it
+      const txt = await resp.text().catch(() => '');
+      const trimmed = (typeof txt === 'string') ? txt.trim() : txt;
+      if (typeof trimmed === 'string' && (trimmed.startsWith('{') || trimmed.startsWith('['))) {
+        try {
+          body = JSON.parse(trimmed);
+        } catch (e) {
+          body = trimmed;
+        }
+      } else {
+        body = trimmed;
+      }
     }
 
-    // If not ok, return status + body text for debugging
-    if (!response.ok) {
-      console.error('Ringba error', { status: response.status, body: parsedBody });
-      return res.status(response.status).json({
-        error: 'Ringba returned an error',
-        status: response.status,
-        body: parsedBody,
-      });
+    if (!resp.ok) {
+      // return Ringba's status + message for easier debugging
+      res.status(resp.status).json({ error: 'Ringba error', status: resp.status, body });
+      return;
     }
 
-    // success: return the parsed JSON (or text if it was text)
-    return res.status(200).json(parsedBody);
+    // success: return parsed JSON (object) if available, else return text under `text`
+    if (typeof body === 'object') {
+      res.status(200).json(body);
+    } else {
+      res.status(200).json({ text: String(body) });
+    }
   } catch (err) {
-    console.error('enrich handler error', err);
-    return res.status(500).json({ error: err.message || 'Internal error' });
+    console.error('enrich handler error:', err);
+    res.status(500).json({ error: String(err) });
   }
-});
+}
