@@ -7,7 +7,8 @@ export default function SsdiBuyerForm() {
   const [formData, setFormData] = useState({
     trackdrive_number: TRACKDRIVE_NUMBER,
     traffic_source_id: TRAFFIC_SOURCE_ID,
-    caller_id: ""
+    caller_id: "",
+    zip: "" // Added zip field
   });
 
   const [buyerVerified, setBuyerVerified] = useState(false);
@@ -19,6 +20,9 @@ export default function SsdiBuyerForm() {
 
   // Validate phone number
   const isValidPhone = (phone) => /^\+1\d{10}$/.test(phone);
+  
+  // Validate zip code (5 digit US zip)
+  const isValidZip = (zip) => /^\d{5}$/.test(zip);
 
   // Buyer verification step (ping)
   const verifyBuyer = async (e) => {
@@ -91,6 +95,11 @@ export default function SsdiBuyerForm() {
       setError("Please enter a valid US phone number in format: +1XXXXXXXXXX");
       return;
     }
+    
+    if (!isValidZip(formData.zip)) {
+      setError("Please enter a valid 5-digit ZIP code");
+      return;
+    }
   
     if (!pingId) {
       setError("Buyer verification failed. Please verify your phone number again.");
@@ -104,7 +113,8 @@ export default function SsdiBuyerForm() {
       trackdrive_number: formData.trackdrive_number,
       traffic_source_id: formData.traffic_source_id,
       caller_id: formData.caller_id,
-      ping_id: pingId
+      ping_id: pingId,
+      zip: formData.zip // Added zip to the post body
     };
   
     try {
@@ -138,6 +148,7 @@ export default function SsdiBuyerForm() {
           trackdrive_number: TRACKDRIVE_NUMBER,
           traffic_source_id: TRAFFIC_SOURCE_ID,
           caller_id: "",
+          zip: "", // Reset zip field
         });
       } else {
         setError(
@@ -233,7 +244,7 @@ export default function SsdiBuyerForm() {
               </svg>
               Contact Information
             </h3>
-            <div className="relative">
+            <div className="relative mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Phone Number <span className="text-red-500">*</span>
               </label>
@@ -270,6 +281,30 @@ export default function SsdiBuyerForm() {
               </div>
               <p className="mt-1 text-xs text-gray-500">Format: +1XXXXXXXXXX</p>
             </div>
+            
+            {/* ZIP Code field - only shown after buyer verification */}
+            {buyerVerified && (
+              <div className="relative">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  ZIP Code <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="zip"
+                  value={formData.zip}
+                  onChange={(e) => {
+                    setFormData((f) => ({ ...f, zip: e.target.value }));
+                    setError(null);
+                  }}
+                  required
+                  className="block w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"
+                  placeholder="12345"
+                  maxLength={5}
+                  pattern="\d{5}"
+                />
+                <p className="mt-1 text-xs text-gray-500">Enter 5-digit US ZIP code</p>
+              </div>
+            )}
 
             <div className="hidden">
               <input

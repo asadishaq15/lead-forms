@@ -24,6 +24,9 @@ export default async function handler(req, res) {
     });
   }
 
+  // Note: We're now also sending the zip field in the body, but not validating it here
+  // as it's handled in the frontend validation
+
   try {
     console.log("Sending POST request with body:", JSON.stringify(body));
     
