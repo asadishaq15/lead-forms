@@ -23,19 +23,23 @@ export default async function handler(req, res) {
       errors: ["Missing required fields. Must include trackdrive_number, traffic_source_id, caller_id, and ping_id"]
     });
   }
-
+  console.log("Received body from frontend:", JSON.stringify(body));
+  const enhancedBody = {
+    ...body,
+    zip_code: body.zip || body.zip_code // Ensure zip_code exists
+  };
+  
+  console.log("Sending POST request with enhanced body:", JSON.stringify(enhancedBody));
   // Note: We're now also sending the zip field in the body, but not validating it here
   // as it's handled in the frontend validation
 
   try {
-    console.log("Sending POST request with body:", JSON.stringify(body));
-    
     const response = await fetch(
       "https://growxmarketingservices.trackdrive.com/api/v1/inbound_webhooks/post/check_for_available_buyers",
       {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(enhancedBody), // Use the enhanced body
       }
     );
     

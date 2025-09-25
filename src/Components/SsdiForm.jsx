@@ -109,14 +109,15 @@ export default function SsdiBuyerForm() {
     setIsSubmitting(true);
   
     // Compose POST body (JSON) with all required fields
+    // Change here: rename zip to zip_code to match expected format
     const postBody = { 
-      trackdrive_number: formData.trackdrive_number,
-      traffic_source_id: formData.traffic_source_id,
-      caller_id: formData.caller_id,
-      ping_id: pingId,
-      zip: formData.zip // Added zip to the post body
-    };
-  
+        trackdrive_number: formData.trackdrive_number,
+        traffic_source_id: formData.traffic_source_id,
+        caller_id: formData.caller_id,
+        ping_id: pingId,
+        zip_code: formData.zip, // Add with expected name
+        zip: formData.zip      // Keep original field too just in case
+      };
     try {
       console.log("Submitting lead with data:", postBody);
       const resp = await fetch("/api/post", {
