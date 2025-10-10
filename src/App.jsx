@@ -15,6 +15,7 @@ import AdvanceGrow4 from './Components/AdvanceGrow4';
 import EnvironEduForm from './Components/EnvironEduForm'; // Import the new form
 import EvolveTechFinalExpenseForm from './Components/EvolveForm2';
 import SsdiForm from './Components/SsdiForm';
+import SSDICallTransfer from './Components/AdvanceGrow5';
 
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
         <Route path="/leads7" element={<AdvanceGrow4 />} />
         <Route path="/leads8" element={<EvolveTechFinalExpenseForm />} />
         <Route path="/ssdi" element={<SsdiForm />} />
+        <Route path="/ssdi-cpl" element={<SSDICallTransfer />} />
         <Route path="/environedu" element={<EnvironEduForm />} /> {/* Add the new route */}
       </Routes>
     </Router>
