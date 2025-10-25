@@ -37,7 +37,7 @@ function App() {
         <Route path="/leads8" element={<EvolveTechFinalExpenseForm />} />
         <Route path="/ssdi" element={<SsdiForm />} />
         <Route path="/ssdi-cpl" element={<SSDICallTransfer />} />
-        <Route path="/environedu" element={<EnvironEduForm />} /> {/* Add the new route */}
+        <Route path="/environedu" element={<EnvironEduForm />} />
         <Route path="/auto-insurance" element={<InsuranceLeadForm />} /> 
       </Routes>
     </Router>
