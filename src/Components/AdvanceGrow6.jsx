@@ -301,7 +301,7 @@ const ACAInboundForm = () => {
           </div>
 
           {/* Hidden Fields Section */}
-          <div className="space-y-6">
+          {/* <div className="space-y-6">
             <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">
               System Information
             </h3>
@@ -331,7 +331,7 @@ const ACAInboundForm = () => {
                 />
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Submit Button */}
           <div className="pt-6">
