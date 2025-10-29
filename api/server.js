@@ -1,119 +1,73 @@
-import express from 'express';
-import cors from 'cors';
-import fetch from 'node-fetch';
+// api/server.js (ESM) - debug version
+import express from "express";
+import axios from "axios";
+import cors from "cors";
+import dotenv from "dotenv";
 
-// Initialize Express
+dotenv.config();
+
 const app = express();
+app.use(cors({ origin: process.env.CORS_ORIGIN || "*" }));
+app.use(express.json({ limit: "200kb" })); // increase if payload larger
 
-// Allow CORS for Vite dev server during development
-app.use(cors());
+const RTB_ID = process.env.RTB_ID || "2811826747329218291";
+const RTB_URL = `https://rtb.ringba.com/v1/production/${RTB_ID}.json`;
 
-// Parse JSON bodies
-app.use(express.json());
-
-// ----- GET /api/ping -----
-app.get('/api/ping', async (req, res) => {
+app.post("/api/submit-lead", async (req, res) => {
   try {
-    const { trackdrive_number, traffic_source_id, caller_id } = req.query;
+    console.log("== Received request to /api/submit-lead ==");
+    console.log("Incoming body (first 2000 chars):", JSON.stringify(req.body).slice(0, 2000));
 
-    if (!trackdrive_number || !traffic_source_id || !caller_id) {
-      return res.status(400).json({ success: false, errors: ["Missing required parameters"] });
+    // Basic validation before forwarding
+    if (!req.body || !req.body.phone) {
+      return res.status(400).json({ error: "Missing payload or phone" });
     }
 
-    const url = `https://growxmarketingservices.trackdrive.com/api/v1/inbound_webhooks/ping/check_for_available_buyers?trackdrive_number=${encodeURIComponent(trackdrive_number)}&traffic_source_id=${encodeURIComponent(traffic_source_id)}&caller_id=${encodeURIComponent(caller_id)}`;
+    // Ensure phone/CID are digits-only strings (Ringba typically expects digits)
+    const digits = String(req.body.phone).replace(/\D/g, "");
+    const forwardedPayload = {
+      ...req.body,
+      phone: digits,
+      CID: (req.body.CID || digits).toString()
+    };
 
-    console.log("PING: Making request to:", url);
+    console.log("Forwarding to Ringba URL:", RTB_URL);
+    console.log("Forwarding payload (first 2000 chars):", JSON.stringify(forwardedPayload).slice(0, 2000));
 
-    const response = await fetch(url);
-
-    // Get raw response text, not just JSON
-    const responseText = await response.text();
-    console.log("PING: Response text:", responseText);
-
-    if (!responseText) {
-      return res.status(500).json({
-        success: false,
-        errors: ["Received empty response from external API"]
-      });
-    }
-
-    let data;
-    try {
-      data = JSON.parse(responseText);
-    } catch (e) {
-      return res.status(500).json({
-        success: false,
-        errors: ["Failed to parse API response as JSON"],
-        responseText: responseText.substring(0, 200)
-      });
-    }
-
-    return res.status(200).json(data);
-
-  } catch (error) {
-    console.error("PING: API Error:", error);
-    return res.status(500).json({
-      success: false,
-      errors: [error.message || "An unexpected error occurred"]
+    const response = await axios.post(RTB_URL, forwardedPayload, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "User-Agent": "lead-forwarder/1.0"
+      },
+      timeout: 15000,
     });
-  }
-});
 
-// ----- POST /api/post -----
-app.post('/api/post', async (req, res) => {
-  // Accept both JSON and stringified JSON bodies
-  let body = req.body;
-  if (typeof body === "string") {
-    try {
-      body = JSON.parse(body);
-    } catch (err) {
-      return res.status(400).json({ success: false, errors: ["Invalid JSON in request body"] });
-    }
-  }
-
-  try {
-    console.log("POST: Sending POST request with body:", JSON.stringify(body));
-
-    const response = await fetch(
-      "https://growxmarketingservices.trackdrive.com/api/v1/inbound_webhooks/post/check_for_available_buyers",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(body),
-      }
-    );
-
-    const responseText = await response.text();
-    console.log("POST: Response text:", responseText);
-
-    if (!responseText) {
-      return res.status(500).json({
-        success: false,
-        errors: ["Received empty response from external API"]
+    console.log("Ringba returned status:", response.status);
+    // forward Ringba response as-is
+    return res.status(response.status).json(response.data || { success: true, info: "no body" });
+  }catch (err) {
+    console.error("Error forwarding request to Ringba:", err);
+    if (err.response) {
+      console.error("Ringba response status:", err.response.status);
+      console.error("Ringba response headers:", JSON.stringify(err.response.headers));
+      console.error("Ringba response data:", err.response.data);
+      // Send back the full error data
+      return res.status(err.response.status || 500).json({
+        error: "Error processing request",
+        ringbaStatus: err.response.status,
+        ringbaData: err.response.data,
+        message: err.message
+      });
+    } else {
+      console.error("Axios/Network error:", err.message);
+      return res.status(500).json({ 
+        error: "Network error", 
+        message: err.message || "unknown error"
       });
     }
-
-    let data;
-    try {
-      data = JSON.parse(responseText);
-    } catch (e) {
-      return res.status(500).json({
-        success: false,
-        errors: ["Failed to parse API response as JSON"],
-        responseText: responseText.substring(0, 200)
-      });
-    }
-
-    res.status(response.status).json(data);
-
-  } catch (error) {
-    console.error("POST: API Error:", error);
-    res.status(500).json({ success: false, errors: [error.message || "An unexpected error occurred"] });
   }
 });
 
-// ----- Start Server -----
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`✅ Express API listening on http://localhost:${PORT}`);
-});
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

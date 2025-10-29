@@ -17,6 +17,7 @@ import EvolveTechFinalExpenseForm from './Components/EvolveForm2';
 import SsdiForm from './Components/SsdiForm';
 import SSDICallTransfer from './Components/AdvanceGrow5';
 import InsuranceLeadForm from './Components/InsuranceLeadFormNew';
+import ACAInboundForm from './Components/AdvanceGrow6';
 
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
         <Route path="/ssdi-cpl" element={<SSDICallTransfer />} />
         <Route path="/environedu" element={<EnvironEduForm />} />
         <Route path="/auto-insurance" element={<InsuranceLeadForm />} /> 
+        <Route path="/aca-leads" element={<ACAInboundForm />} /> 
       </Routes>
     </Router>
   );
