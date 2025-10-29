@@ -343,10 +343,6 @@ const ACAInboundForm = () => {
             </button>
           </div>
         </form>
-
-        <div className="bg-gray-50 p-4 border-t border-gray-200 text-center text-xs text-gray-500">
-          Growx Marketing Services - ACA Inbound Call Transfer • Offer ID: 10021905
-        </div>
       </div>
     </div>
   );
