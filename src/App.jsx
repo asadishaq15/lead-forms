@@ -37,8 +37,8 @@ function App() {
         <Route path="/leads6" element={<AcaKkCplForm />} />
         <Route path="/leads7" element={<AdvanceGrow4 />} />
         <Route path="/leads8" element={<EvolveTechFinalExpenseForm />} />
-        <Route path="/ssdi" element={<SSDIInboundFormNew />} />
-        <Route path="/ssdi-cpl" element={<SSDICallTransfer />} />
+        <Route path="/ssdi" element={<SsdiForm />} />
+        <Route path="/ssdi-cpl" element={<SSDIInboundFormNew />} />
         <Route path="/environedu" element={<EnvironEduForm />} />
         <Route path="/auto-insurance" element={<InsuranceLeadForm />} /> 
         <Route path="/aca-leads" element={<ACAInboundForm />} /> 
