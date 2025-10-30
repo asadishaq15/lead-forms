@@ -201,39 +201,6 @@ const SSDIInboundFormNew = () => {
             </div>
           </div>
 
-          {/* Hidden Fields Information */}
-          <div className="space-y-6">
-            <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">
-              System Information
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Lead Token
-                </label>
-                <input
-                  type="text"
-                  name="lead_token"
-                  value={formData.lead_token}
-                  disabled
-                  className="mt-1 block w-full rounded-md border-2 border-gray-200 bg-gray-100 shadow-sm text-gray-500 p-2"
-                />
-                <p className="mt-1 text-xs text-gray-500">Static value for SSDI CPA offer</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Traffic Source ID
-                </label>
-                <input
-                  type="text"
-                  name="traffic_source_id"
-                  value={formData.traffic_source_id}
-                  disabled
-                  className="mt-1 block w-full rounded-md border-2 border-gray-200 bg-gray-100 shadow-sm text-gray-500 p-2"
-                />
-              </div>
-            </div>
-          </div>
 
           {/* Submit Button */}
           <div className="pt-6">
