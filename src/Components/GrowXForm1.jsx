@@ -5,6 +5,9 @@ const GrowXForm1 = () => {
     lead_token: "a9faecfbeddd4d57bae3d325800181af",
     caller_id: "",
     traffic_source_id: "1000",
+    first_name: "",
+    last_name: "",
+    email: "",
   });
 
   const [error, setError] = useState(null);
@@ -15,7 +18,8 @@ const GrowXForm1 = () => {
     setError(null);
     setSuccess(null);
 
-    const requiredFields = ["caller_id"];
+    // Make first_name, last_name, email and caller_id required
+    const requiredFields = ["caller_id", "first_name", "last_name", "email"];
 
     for (const field of requiredFields) {
       if (!formData[field]) {
@@ -29,6 +33,12 @@ const GrowXForm1 = () => {
     // Phone validation - should start with + followed by digits
     if (!/^\+\d+$/.test(formData.caller_id)) {
       setError("Please enter a valid phone number starting with + followed by country code and number (e.g. +17194451111).");
+      return;
+    }
+
+    // Basic email validation
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setError("Please enter a valid email address (e.g. first-and-last-name@gmail.com).");
       return;
     }
 
@@ -51,6 +61,9 @@ const GrowXForm1 = () => {
           setFormData((prev) => ({
             ...prev,
             caller_id: "",
+            first_name: "",
+            last_name: "",
+            email: "",
           }));
         } else {
           const errorMessage =
@@ -141,6 +154,7 @@ const GrowXForm1 = () => {
             <h3 className="text-xl font-semibold text-gray-900 border-b pb-2">
               Call Transfer Information
             </h3>
+
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Phone Number (Caller ID) *
@@ -156,8 +170,54 @@ const GrowXForm1 = () => {
               />
               <p className="mt-1 text-xs text-gray-500">Format: + followed by country code and phone number (e.g. +17194451111)</p>
             </div>
-            
-           
+
+            {/* Added first name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                First Name *
+              </label>
+              <input
+                type="text"
+                name="first_name"
+                value={formData.first_name}
+                onChange={handleChange}
+                required
+                placeholder="John"
+                className="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 p-2"
+              />
+            </div>
+
+            {/* Added last name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Last Name *
+              </label>
+              <input
+                type="text"
+                name="last_name"
+                value={formData.last_name}
+                onChange={handleChange}
+                required
+                placeholder="Smith"
+                className="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 p-2"
+              />
+            </div>
+
+            {/* Added email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Email Address *
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                placeholder="first-and-last-name@gmail.com"
+                className="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 p-2"
+              />
+            </div>
           </div>
 
           {/* Submit Button */}
