@@ -1,16 +1,30 @@
-// api/server.js (ESM) - debug version
+// api/server.js (ESM) - combined routes + static serve
 import express from "express";
 import axios from "axios";
 import cors from "cors";
-import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs";
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
-app.use(cors({ origin: process.env.CORS_ORIGIN || "*" }));
-app.use(express.json({ limit: "200kb" })); // increase if payload larger
 
-const RTB_ID = process.env.RTB_ID || "2811826747329218291";
+// ---------- Hardcoded configuration (no environment variables) --------------
+// NOTE: storing secrets/config in source is convenient for local testing but NOT
+// recommended for production. Replace these values if needed.
+const CORS_ORIGIN = "*"; // or "http://localhost:3000"
+const PORT = 5001;
+const RTB_ID = "2811826747329218291";
+const TRACKDRIVE_NUMBER = "+18775902476";
+const TRAFFIC_SOURCE_ID = "1000";
+// ---------------------------------------------------------------------------
+
+app.use(cors({ origin: CORS_ORIGIN }));
+app.use(express.json({ limit: "200kb" }));
+
+// ------------ Existing Ringba forwarder -------------
 const RTB_URL = `https://rtb.ringba.com/v1/production/${RTB_ID}.json`;
 
 app.post("/api/submit-lead", async (req, res) => {
@@ -18,12 +32,10 @@ app.post("/api/submit-lead", async (req, res) => {
     console.log("== Received request to /api/submit-lead ==");
     console.log("Incoming body (first 2000 chars):", JSON.stringify(req.body).slice(0, 2000));
 
-    // Basic validation before forwarding
     if (!req.body || !req.body.phone) {
       return res.status(400).json({ error: "Missing payload or phone" });
     }
 
-    // Ensure phone/CID are digits-only strings (Ringba typically expects digits)
     const digits = String(req.body.phone).replace(/\D/g, "");
     const forwardedPayload = {
       ...req.body,
@@ -44,15 +56,10 @@ app.post("/api/submit-lead", async (req, res) => {
     });
 
     console.log("Ringba returned status:", response.status);
-    // forward Ringba response as-is
     return res.status(response.status).json(response.data || { success: true, info: "no body" });
-  }catch (err) {
+  } catch (err) {
     console.error("Error forwarding request to Ringba:", err);
     if (err.response) {
-      console.error("Ringba response status:", err.response.status);
-      console.error("Ringba response headers:", JSON.stringify(err.response.headers));
-      console.error("Ringba response data:", err.response.data);
-      // Send back the full error data
       return res.status(err.response.status || 500).json({
         error: "Error processing request",
         ringbaStatus: err.response.status,
@@ -60,14 +67,135 @@ app.post("/api/submit-lead", async (req, res) => {
         message: err.message
       });
     } else {
-      console.error("Axios/Network error:", err.message);
-      return res.status(500).json({ 
-        error: "Network error", 
+      return res.status(500).json({
+        error: "Network error",
         message: err.message || "unknown error"
       });
     }
   }
 });
 
-const PORT = process.env.PORT || 5001;
+// ------------ Trackdrive ping and post endpoints -------------
+// Using the hardcoded TRACKDRIVE_NUMBER and TRAFFIC_SOURCE_ID above
+
+// Helper: call upstream with timeout using axios
+async function axiosWithTimeout(url, opts = {}, timeoutMs = 8000) {
+  const source = axios.CancelToken.source();
+  const timer = setTimeout(() => {
+    source.cancel(`Timeout after ${timeoutMs}ms`);
+  }, timeoutMs);
+
+  try {
+    const response = await axios({
+      url,
+      cancelToken: source.token,
+      ...opts,
+    });
+    clearTimeout(timer);
+    return response;
+  } catch (err) {
+    clearTimeout(timer);
+    throw err;
+  }
+}
+
+// GET /api/ping?caller_id=+1XXXXXXXXXX
+app.get("/api/ping2", async (req, res) => {
+  // Validate config presence (hardcoded above)
+  if (!TRACKDRIVE_NUMBER || !TRAFFIC_SOURCE_ID) {
+    console.error("Missing TRACKDRIVE_NUMBER or TRAFFIC_SOURCE_ID (hardcoded)");
+    return res.status(500).json({ success: false, status: "error", errors: ["Server misconfiguration"] });
+  }
+
+  const { caller_id } = req.query;
+  if (!caller_id || !/^\+1\d{10}$/.test(caller_id)) {
+    return res.status(400).json({ success: false, status: "error", errors: ["Invalid or missing caller_id. Expected +1XXXXXXXXXX"] });
+  }
+
+  const apiUrl = `https://growxmarketingservices.trackdrive.com/api/v1/inbound_webhooks/ping/check_for_available_buyers?trackdrive_number=${encodeURIComponent(TRACKDRIVE_NUMBER)}&traffic_source_id=${encodeURIComponent(TRAFFIC_SOURCE_ID)}&caller_id=${encodeURIComponent(caller_id)}`;
+
+  try {
+    const upstream = await axiosWithTimeout(apiUrl, { method: "GET" }, 8000);
+    return res.status(upstream.status).json(upstream.data);
+  } catch (err) {
+    console.error("Ping upstream error:", err.message || err);
+
+    if (axios.isCancel(err)) {
+      return res.status(504).json({ success: false, status: "timeout", errors: ["Upstream request timed out"] });
+    }
+
+    if (err.response) {
+      return res.status(err.response.status || 502).json({
+        success: false,
+        status: "upstream_error",
+        errors: [err.response.data?.errors?.join?.(", ") || err.response.data?.status || `Upstream status ${err.response.status}`],
+      });
+    }
+
+    return res.status(500).json({ success: false, status: "error", errors: ["Server error: " + (err.message || "unknown")] });
+  }
+});
+
+// POST /api/post
+app.post("/api/post2", async (req, res) => {
+  if (!TRACKDRIVE_NUMBER || !TRAFFIC_SOURCE_ID) {
+    console.error("Missing TRACKDRIVE_NUMBER or TRAFFIC_SOURCE_ID (hardcoded)");
+    return res.status(500).json({ success: false, status: "error", errors: ["Server misconfiguration"] });
+  }
+
+  try {
+    const body = req.body || {};
+    const required = ["ping_id", "caller_id", "first_name", "last_name", "zip", "age"];
+    const missing = required.filter(k => !body[k]);
+    if (missing.length) {
+      return res.status(400).json({ success: false, status: "error", errors: ["Missing required fields: " + missing.join(", ")] });
+    }
+
+    const payload = {
+      ...body,
+      trackdrive_number: TRACKDRIVE_NUMBER,
+      traffic_source_id: TRAFFIC_SOURCE_ID,
+    };
+
+    const apiUrl = "https://growxmarketingservices.trackdrive.com/api/v1/inbound_webhooks/post/check_for_available_buyers";
+
+    const upstream = await axiosWithTimeout(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: JSON.stringify(payload),
+    }, 10000);
+
+    return res.status(upstream.status).json(upstream.data);
+  } catch (err) {
+    console.error("Post upstream error:", err.message || err);
+    if (axios.isCancel(err)) {
+      return res.status(504).json({ success: false, status: "timeout", errors: ["Upstream request timed out"] });
+    }
+    if (err.response) {
+      return res.status(err.response.status || 502).json({
+        success: false,
+        status: "upstream_error",
+        errors: [err.response.data?.errors?.join?.(", ") || err.response.data?.status || `Upstream status ${err.response.status}`],
+      });
+    }
+    return res.status(500).json({ success: false, status: "error", errors: ["Server error: " + (err.message || "unknown")] });
+  }
+});
+
+// ----- Serve built frontend in production -----
+// Vite typically outputs to `dist` by default. Adjust if you changed it.
+const distPath = path.join(__dirname, "..", "dist");
+
+if (fs.existsSync(distPath)) {
+  console.log("Serving static files from:", distPath);
+  app.use(express.static(distPath));
+
+  // catch-all: return index.html for client routing (SPA)
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(distPath, "index.html"));
+  });
+} else {
+  console.log("Dist folder not found; skipping static file serving (dev mode).");
+}
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

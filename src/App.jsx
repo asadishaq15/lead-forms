@@ -21,6 +21,7 @@ import ACAInboundForm from './Components/AdvanceGrow6';
 import SSDIInboundFormNew from './Components/ssdiFormNew';
 import GrowXForm from './Components/GrowXForm1';
 import GrowXForm1 from './Components/GrowXForm1';
+import GrowXForm2 from './Components/GrowXForm2';
 
 
 function App() {
@@ -45,6 +46,7 @@ function App() {
         <Route path="/auto-insurance" element={<InsuranceLeadForm />} /> 
         <Route path="/aca-leads" element={<ACAInboundForm />} /> 
         <Route path="/ssdi-aki" element={<GrowXForm1 />} /> 
+        <Route path="/ssdi-aki-2" element={<GrowXForm2 />} /> 
       </Routes>
     </Router>
   );
