@@ -22,6 +22,9 @@ import SSDIInboundFormNew from './Components/ssdiFormNew';
 import GrowXForm from './Components/GrowXForm1';
 import GrowXForm1 from './Components/GrowXForm1';
 import GrowXForm2 from './Components/GrowXForm2';
+import GradientWaves from './Components/GradientWaves';
+import PlatformzOrbital from './Components/test';
+import GrowXForm3 from './Components/GrowXForm3';
 
 
 function App() {
@@ -47,6 +50,9 @@ function App() {
         <Route path="/aca-leads" element={<ACAInboundForm />} /> 
         <Route path="/ssdi-aki" element={<GrowXForm1 />} /> 
         <Route path="/ssdi-aki-2" element={<GrowXForm2 />} /> 
+        <Route path="/ssdi-cpa-fps" element={<GrowXForm3 />} /> 
+        {/* <Route path="/weaves" element={<GradientWaves />} /> 
+        <Route path="/test" element={<PlatformzOrbital />} />  */}
       </Routes>
     </Router>
   );
