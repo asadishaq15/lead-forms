@@ -16,11 +16,13 @@ export default async function handler(req, res) {
         traffic_source_id,
         caller_id,
         zip,
-        age
+        dob_mm,
+        dob_dd,
+        dob_yyyy
       } = req.body;
       
       // Validate required fields
-      if (!ping_id || !trackdrive_number || !traffic_source_id || !caller_id || !zip || !age) {
+      if (!ping_id || !trackdrive_number || !traffic_source_id || !caller_id || !zip || !dob_mm || !dob_dd || !dob_yyyy) {
         return res.status(400).json({
           success: false,
           status: "error",

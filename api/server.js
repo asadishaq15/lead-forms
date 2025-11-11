@@ -234,7 +234,7 @@ app.post("/api/post3", async (req, res) => {
 
   try {
     const body = req.body || {};
-    const required = ["ping_id", "caller_id", "zip", "age"];
+    const required = ["ping_id", "caller_id", "zip", "dob_mm", "dob_dd", "dob_yyyy"];
     const missing = required.filter(k => !body[k]);
     if (missing.length) {
       return res.status(400).json({ success: false, status: "error", errors: ["Missing required fields: " + missing.join(", ")] });
