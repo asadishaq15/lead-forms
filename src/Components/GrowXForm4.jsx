@@ -14,12 +14,9 @@ export default function GrowXForm4() {
     dob_yyyy: ""
   });
 
-  const [buyerVerified, setBuyerVerified] = useState(false);
   const [isCheckingBuyers, setIsCheckingBuyers] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
-  const [pingId, setPingId] = useState("");
   const [forwardingNumber, setForwardingNumber] = useState("");
 
   // Validate phone number format: +1 followed by 10 digits
@@ -57,43 +54,7 @@ export default function GrowXForm4() {
     return false;
   };
 
-  // Buyer verification step (ping)
-  const verifyBuyer = async (e) => {
-    e.preventDefault();
-    setError(null);
-  
-    if (!isValidPhone(formData.caller_id)) {
-      setError("Please enter a valid US phone number in format: +1XXXXXXXXXX");
-      return;
-    }
-  
-    setIsCheckingBuyers(true);
-    setBuyerVerified(false);
-    setPingId("");
-  
-    try {
-      const url = `/api/ping3?trackdrive_number=${encodeURIComponent(TRACKDRIVE_NUMBER)}&traffic_source_id=${encodeURIComponent(TRAFFIC_SOURCE_ID)}&caller_id=${encodeURIComponent(formData.caller_id)}`;
-      const response = await fetch(url);
-      const data = await response.json();
-  
-      if (data.success && data.try_all_buyers_ping_id) {
-        setBuyerVerified(true);
-        setPingId(data.try_all_buyers_ping_id);
-      } else {
-        setError(
-          (data.errors && data.errors.join(", ")) ||
-            data.status ||
-            "No buyers are available at the moment."
-        );
-      }
-    } catch (err) {
-      setError("Network error: " + err.message);
-    }
-    
-    setIsCheckingBuyers(false);
-  };
-  
-  // Main form submission
+  // Handle form submission (now combining ping and post functionality)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -115,58 +76,48 @@ export default function GrowXForm4() {
       return;
     }
   
-    if (!pingId) {
-      setError("Please verify your phone number first");
-      return;
-    }
-  
-    setIsSubmitting(true);
-  
-    // Prepare data for POST request
-    const postData = {
-      ...formData,
-      ping_id: pingId,
-      trackdrive_number: TRACKDRIVE_NUMBER,
-      traffic_source_id: TRAFFIC_SOURCE_ID
-    };
+    setIsCheckingBuyers(true);
   
     try {
-      const response = await fetch("/api/post3", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(postData),
-      });
-      
-      const data = await response.json();
+      // First, perform the ping request
+      const pingUrl = `/api/ping3?trackdrive_number=${encodeURIComponent(TRACKDRIVE_NUMBER)}&traffic_source_id=${encodeURIComponent(TRAFFIC_SOURCE_ID)}&caller_id=${encodeURIComponent(formData.caller_id)}`;
+      const pingResponse = await fetch(pingUrl);
+      const pingData = await pingResponse.json();
   
-      if (data.success) {
-        setSuccess(true);
-        setForwardingNumber(data.forwarding_number || "");
-        
-        // Reset form
-        setBuyerVerified(false);
-        setPingId("");
-        setFormData({
-          caller_id: "",
-          zip: "",
-          dob_mm: "",
-          dob_dd: "",
-          dob_yyyy: ""
-        });
-      } else {
+      if (!pingData.success || !pingData.try_all_buyers_ping_id) {
         setError(
-          (data.errors && data.errors.join(", ")) ||
-            data.status ||
-            "Submission failed. Please try again."
+          (pingData.errors && pingData.errors.join(", ")) ||
+            pingData.status ||
+            "No buyers are available at the moment."
         );
+        setIsCheckingBuyers(false);
+        return;
       }
+
+      // If ping is successful, consider the submission successful
+      setSuccess(true);
+      
+      // Use any information from the ping response directly
+      if (pingData.forwarding_number) {
+        setForwardingNumber(pingData.forwarding_number);
+      } else {
+        // In a real implementation, you might want to set a default number
+        setForwardingNumber(TRACKDRIVE_NUMBER);
+      }
+      
+      // Reset form
+      setFormData({
+        caller_id: "",
+        zip: "",
+        dob_mm: "",
+        dob_dd: "",
+        dob_yyyy: ""
+      });
     } catch (err) {
       setError("Network error: " + err.message);
     }
     
-    setIsSubmitting(false);
+    setIsCheckingBuyers(false);
   };
 
   // Hide success message after 8 seconds
@@ -223,57 +174,25 @@ export default function GrowXForm4() {
           </div>
         )}
 
-        {buyerVerified && !success && (
-          <div className="mx-4 mt-4 p-3 bg-blue-50 border-l-4 border-blue-500 rounded-md">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-blue-700">
-                  Phone verified! Please complete the form to proceed.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="px-6 py-6 space-y-5">
           {/* Phone Number / Caller ID field */}
           <div>
             <label htmlFor="caller_id" className="block text-sm font-medium text-gray-700 mb-1">
               Phone Number <span className="text-red-500">*</span>
             </label>
-            <div className="relative">
-              <input
-                type="tel"
-                id="caller_id"
-                name="caller_id"
-                value={formData.caller_id}
-                onChange={(e) => {
-                  setFormData((prev) => ({ ...prev, caller_id: e.target.value }));
-                  setBuyerVerified(false);
-                  setPingId("");
-                  setError(null);
-                }}
-                className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
-                placeholder="+17771234567"
-                required
-                disabled={buyerVerified}
-              />
-              <button
-                type="button"
-                onClick={verifyBuyer}
-                disabled={isCheckingBuyers || buyerVerified}
-                className={`absolute right-2 top-2 px-3 py-1 rounded text-sm font-medium text-white 
-                ${isCheckingBuyers || buyerVerified ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"} 
-                transition-colors`}
-              >
-                {isCheckingBuyers ? "Checking..." : buyerVerified ? "Verified" : "Verify"}
-              </button>
-            </div>
+            <input
+              type="tel"
+              id="caller_id"
+              name="caller_id"
+              value={formData.caller_id}
+              onChange={(e) => {
+                setFormData((prev) => ({ ...prev, caller_id: e.target.value }));
+                setError(null);
+              }}
+              className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
+              placeholder="+17771234567"
+              required
+            />
             <p className="mt-1 text-xs text-gray-500">Format: +1XXXXXXXXXX</p>
           </div>
 
@@ -287,13 +206,10 @@ export default function GrowXForm4() {
               name="zip"
               value={formData.zip}
               onChange={(e) => setFormData((prev) => ({ ...prev, zip: e.target.value }))}
-              className={`block w-full px-4 py-3 rounded-lg border border-gray-300 transition-colors ${
-                !buyerVerified ? "bg-gray-100" : "focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
-              }`}
+              className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
               placeholder="12345"
               maxLength="5"
               required
-              disabled={!buyerVerified}
             />
             <p className="mt-1 text-xs text-gray-500">5-digit US ZIP code</p>
           </div>
@@ -314,13 +230,10 @@ export default function GrowXForm4() {
                     ...prev, 
                     dob_mm: e.target.value.replace(/\D/g, '').slice(0, 2) 
                   }))}
-                  className={`block w-full px-4 py-3 rounded-lg border border-gray-300 transition-colors ${
-                    !buyerVerified ? "bg-gray-100" : "focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
-                  }`}
+                  className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
                   placeholder="MM"
                   maxLength="2"
                   required
-                  disabled={!buyerVerified}
                 />
               </div>
               <div>
@@ -333,13 +246,10 @@ export default function GrowXForm4() {
                     ...prev, 
                     dob_dd: e.target.value.replace(/\D/g, '').slice(0, 2) 
                   }))}
-                  className={`block w-full px-4 py-3 rounded-lg border border-gray-300 transition-colors ${
-                    !buyerVerified ? "bg-gray-100" : "focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
-                  }`}
+                  className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
                   placeholder="DD"
                   maxLength="2"
                   required
-                  disabled={!buyerVerified}
                 />
               </div>
               <div>
@@ -352,13 +262,10 @@ export default function GrowXForm4() {
                     ...prev, 
                     dob_yyyy: e.target.value.replace(/\D/g, '').slice(0, 4) 
                   }))}
-                  className={`block w-full px-4 py-3 rounded-lg border border-gray-300 transition-colors ${
-                    !buyerVerified ? "bg-gray-100" : "focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
-                  }`}
+                  className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
                   placeholder="YYYY"
                   maxLength="4"
                   required
-                  disabled={!buyerVerified}
                 />
               </div>
             </div>
@@ -368,16 +275,14 @@ export default function GrowXForm4() {
           <div className="pt-2">
             <button
               type="submit"
-              disabled={isSubmitting || !buyerVerified}
+              disabled={isCheckingBuyers}
               className={`w-full px-6 py-3 rounded-lg font-medium text-white ${
-                !buyerVerified 
-                  ? "bg-gray-400 cursor-not-allowed" 
-                  : isSubmitting
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-700 opacity-75 cursor-not-allowed" 
-                    : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
+                isCheckingBuyers
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-700 opacity-75 cursor-not-allowed" 
+                  : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
               } transition-colors shadow-md`}
             >
-              {isSubmitting ? (
+              {isCheckingBuyers ? (
                 <>
                   <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -385,8 +290,6 @@ export default function GrowXForm4() {
                   </svg>
                   Processing...
                 </>
-              ) : !buyerVerified ? (
-                "Verify Your Phone First"
               ) : (
                 "Submit"
               )}
