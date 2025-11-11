@@ -1,40 +1,93 @@
-/* PlatformzOrbital.css */
+/* PlatformzOrbital.css - Complete Fix */
 
-/* Orbit rings wrapper uses full-screen coordinates */
-.orbit-rings-container {
+:root {
+    --bubble-size: 90px;
+    --glow-color-1: rgba(59,130,246,0.9); /* blue */
+    --glow-color-2: rgba(138,43,226,0.55); /* purple */
+    --inner-glow-blur: 18px;
+    --inner-glow-spread: 6px;
+    --pulse-duration: 4.5s; /* slow pulse */
+  }
+  
+  /* Main container - fixed size and position */
+  .relative {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    background-color: black;
+  }
+  
+  /* Ensure orbit system stays fixed */
+  .orbit-system {
     position: absolute;
     width: 100%;
     height: 100%;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Fixed positioning for orbit containers */
+  .orbit-rings-container, 
+  .inner-orbit-container,
+  .outer-orbit-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    /* Fixed size container */
     pointer-events: none;
   }
   
-  /* Center container: absolutely centered */
+  /* Center element fixed at center */
   .platformz-center-container {
     position: absolute;
-    left: 45%; /* Fixed from 45% to 50% for true center */
-    top: 40%; /* Fixed from 45% to 50% for true center */
+    left: 50%;
+    top: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 30;
   }
   
-  /* Smaller main center bubble */
   .platformz-center {
     width: 160px;
     height: 160px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(30,64,175,0.92) 0%, rgba(30,58,138,0.6) 60%, rgba(30,58,138,0.08) 100%);
+    background: radial-gradient(circle, 
+      rgba(59,130,246,0.3) 0%, 
+      rgba(79,70,229,0.25) 40%, 
+      rgba(109,40,217,0.15) 70%, 
+      rgba(30,58,138,0.05) 100%);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 0 48px rgba(30,64,175,0.8);
+    box-shadow: none; 
     text-align: center;
     padding: 0.9rem;
     color: white;
+    position: relative;
+    backdrop-filter: blur(1px);
   }
   
-  /* Center text sizing */
+  .platformz-center::after {
+    content: "";
+    position: absolute;
+    top: -30px;
+    left: -30px;
+    right: -30px;
+    bottom: -30px;
+    border-radius: 50%;
+    background: radial-gradient(circle, 
+      rgba(59,130,246,0.4) 0%, 
+      rgba(109,40,217,0.2) 40%, 
+      rgba(30,58,138,0.05) 80%);
+    filter: blur(15px);
+    z-index: -1;
+  }
+  
   .platformz-title {
     font-size: 1.25rem;
     font-weight: 800;
@@ -52,32 +105,32 @@
     line-height: 1;
   }
   
-  /* Orbit containers remain full-screen so calc(50% + x) works */
+  /* Fixed center for orbit rotations */
   .inner-orbit-container,
   .outer-orbit-container {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    right: 2%;
-    bottom: 7%;
-    pointer-events: none;
-    transform-origin: center center; /* Ensure rotation is from center */
+    transform-origin: center center;
   }
   
+  /* Orbit item positioning */
   .orbit-item-wrapper {
     position: absolute;
-    transform: translate(-50%, -50%);
+    transform-origin: center center;
+    /* Important: must be positioned absolutely */
     pointer-events: all;
-    transform-origin: center center; /* Ensure counter-rotation is from center */
+    transform: translate(-50%, -50%); /* Center the wrapper itself */
   }
   
-  /* Bubble sizes and text */
   .orbit-sphere {
-    width: 80px;
-    height: 80px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
-    background-image: radial-gradient(circle at 30% 30%, rgba(59,130,246,0.95) 0%, rgba(30,64,175,0.9) 30%, rgba(30,58,138,0.75) 60%, rgba(30,58,138,0.18) 100%);
-    box-shadow: 0 0 20px rgba(59,130,246,0.7);
+    background-image: radial-gradient(
+      circle at 30% 30%, 
+      rgba(47,104,196,0.95) 0%, 
+      rgba(24,51,140,0.9) 30%, 
+      rgba(20,46,110,0.75) 60%, 
+      rgba(16,38,90,0.18) 100%
+    );
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -85,34 +138,76 @@
     text-align: center;
     padding: 0.35rem;
     color: white;
-    font-size: 0.72rem;
-    line-height: 1.05;
+    font-size: 0.85rem;
+    line-height: 1.1;
+    position: relative;
+    overflow: hidden;
   }
   
-  /* Orbit rings - perfect circles, perfectly centered */
+  .orbit-sphere::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    box-shadow: inset 0 0 10px 3px rgba(59,130,246,0.5);
+    animation: pulsateBorder 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+  
+  /* Fixed positioning for orbit rings */
   .inner-orbit-ring,
   .outer-orbit-ring {
     position: absolute;
-    border-radius: 50%;
-    border: 1px solid rgba(59,130,246,0.26);
-    transform: translate(-50%, -50%);
     left: 50%;
     top: 50%;
-    box-shadow: 0 0 12px rgba(59,130,246,0.18), 0 0 4px rgba(59,130,246,0.25) inset;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    pointer-events: none;
   }
   
-  /* Match ring sizes with the radii used in component */
   .inner-orbit-ring {
     width: 320px;
     height: 320px;
+    border: 1px solid rgba(59,130,246,0.15); /* Light border for visibility */
+    background: transparent;
+  }
+  
+  .inner-orbit-ring::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 50%;
+    box-shadow: 0 -15px 40px 20px rgba(59, 130, 246, 0.35) inset,
+                0 0 30px 15px rgba(138, 43, 226, 0.2) inset;
+    filter: blur(5px);
   }
   
   .outer-orbit-ring {
     width: 640px;
     height: 640px;
+    border: 1px solid rgba(138,43,226,0.15); /* Light border for visibility */
+    background: transparent;
   }
   
-  /* Star background */
+  .outer-orbit-ring::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    box-shadow: 0 20px 45px 20px rgba(138, 43, 226, 0.2) inset,
+                0 0 30px 20px rgba(59, 130, 246, 0.15) inset;
+    filter: blur(8px);
+  }
+  
   .stars-container {
     position: absolute;
     width: 100%;
@@ -132,7 +227,6 @@
     50% { opacity: 1; }
   }
   
-  /* Shooting stars */
   .shooting-star {
     position: absolute;
     height: 2px;
@@ -156,5 +250,14 @@
     100% {
       transform: translateX(420px) translateY(220px) rotate(35deg);
       opacity: 0;
+    }
+  }
+  
+  @keyframes pulsateBorder {
+    0%, 100% {
+      box-shadow: inset 0 0 8px 3px rgba(59,130,246,0.4);
+    }
+    50% {
+      box-shadow: inset 0 0 12px 4px rgba(59,130,246,0.65);
     }
   }

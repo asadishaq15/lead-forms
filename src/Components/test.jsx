@@ -5,6 +5,7 @@ import './PlatformzOrbital.css';
 const PlatformzOrbital = () => {
   const shootingStarRef = useRef(null);
 
+  // Shooting star logic
   const createShootingStar = () => {
     if (!shootingStarRef.current) return;
     const container = shootingStarRef.current;
@@ -45,16 +46,13 @@ const PlatformzOrbital = () => {
     "Influencer & Referral Portal",
   ];
 
-  // Inner orbit duration
   const innerOrbitDuration = 240;
-  
-  // Outer orbit duration (faster)
   const outerOrbitDuration = 180;
 
   return (
-    <div className="relative h-screen w-full bg-black overflow-hidden">
-      {/* Star background */}
-      <div className="absolute inset-0 bg-black">
+    <div className="relative">
+      {/* Stars background */}
+      <div className="absolute inset-0">
         <div className="stars-container">
           {[...Array(350)].map((_, i) => (
             <div
@@ -73,20 +71,20 @@ const PlatformzOrbital = () => {
         </div>
       </div>
 
-      {/* Shooting stars container */}
+      {/* Shooting stars */}
       <div ref={shootingStarRef} className="absolute inset-0 z-10" />
 
-      {/* Full-screen container (keeps orbital coords consistent) */}
-      <div className="absolute inset-0">
-        {/* Orbital rings */}
+      {/* Main orbital system - fixed positioning */}
+      <div className="orbit-system">
+        {/* Orbit rings */}
         <div className="orbit-rings-container">
           <div className="inner-orbit-ring" />
           <div className="outer-orbit-ring" />
         </div>
 
-        {/* Platform center (centered via CSS) */}
+        {/* Center element */}
         <motion.div
-          className="platformz-center-container z-30"
+          className="platformz-center-container"
           animate={{
             scale: [1, 1.035, 1],
             opacity: [0.92, 1, 0.92],
@@ -107,7 +105,7 @@ const PlatformzOrbital = () => {
           </div>
         </motion.div>
 
-        {/* Inner orbit */}
+        {/* Inner orbit with fixed size and position */}
         <motion.div
           className="inner-orbit-container"
           animate={{ rotate: 360 }}
@@ -116,22 +114,34 @@ const PlatformzOrbital = () => {
             repeat: Infinity,
             ease: "linear",
           }}
+          style={{
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+            top: 0,
+            left: 0
+          }}
         >
           {innerOrbitItems.map((item, index) => {
+            // Distribute items evenly in a circle
             const angle = (index / innerOrbitItems.length) * 2 * Math.PI;
-            // Use exactly half the inner-orbit-ring width (320px ÷ 2)
-            const radius = 160;
-            const x = Math.cos(angle) * radius;
-            const y = Math.sin(angle) * radius;
+            // Inner orbit radius - must match the CSS (half of inner-orbit-ring width)
+            const radius = 160; 
+            
+            // Calculate position based on angle and radius from center
+            const x = 50 + Math.cos(angle) * radius / (window.innerWidth / 100);
+            const y = 50 + Math.sin(angle) * radius / (window.innerHeight / 100);
 
             return (
               <motion.div
                 key={index}
                 className="orbit-item-wrapper"
                 style={{
-                  left: `calc(50% + ${x}px)`,
-                  top: `calc(50% + ${y}px)`,
+                  // Position as percentage of viewport to maintain stability
+                  left: `${x}%`,
+                  top: `${y}%`,
                 }}
+                // Counter-rotate to keep text upright
                 animate={{ rotate: -360 }}
                 transition={{
                   duration: innerOrbitDuration,
@@ -155,7 +165,7 @@ const PlatformzOrbital = () => {
           })}
         </motion.div>
 
-        {/* Outer orbit */}
+        {/* Outer orbit with fixed size and position */}
         <motion.div
           className="outer-orbit-container"
           animate={{ rotate: 360 }}
@@ -164,22 +174,34 @@ const PlatformzOrbital = () => {
             repeat: Infinity,
             ease: "linear",
           }}
+          style={{
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+            top: 0,
+            left: 0
+          }}
         >
           {outerOrbitItems.map((item, index) => {
+            // Distribute items evenly in a circle
             const angle = (index / outerOrbitItems.length) * 2 * Math.PI;
-            // Use exactly half the outer-orbit-ring width (640px ÷ 2)
-            const radius = 320;
-            const x = Math.cos(angle) * radius;
-            const y = Math.sin(angle) * radius;
+            // Outer orbit radius - must match the CSS (half of outer-orbit-ring width)
+            const radius = 320; 
+            
+            // Calculate position based on angle and radius from center
+            const x = 50 + Math.cos(angle) * radius / (window.innerWidth / 100);
+            const y = 50 + Math.sin(angle) * radius / (window.innerHeight / 100);
 
             return (
               <motion.div
                 key={index}
                 className="orbit-item-wrapper"
                 style={{
-                  left: `calc(50% + ${x}px)`,
-                  top: `calc(50% + ${y}px)`,
+                  // Position as percentage of viewport to maintain stability
+                  left: `${x}%`,
+                  top: `${y}%`,
                 }}
+                // Counter-rotate to keep text upright
                 animate={{ rotate: -360 }}
                 transition={{
                   duration: outerOrbitDuration,
