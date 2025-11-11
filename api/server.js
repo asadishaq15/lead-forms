@@ -112,18 +112,25 @@ app.get("/api/ping2", async (req, res) => {
     return res.status(500).json({ success: false, status: "error", errors: ["Server misconfiguration"] });
   }
 
-  const { caller_id } = req.query;
+  const { caller_id, zip, age, first_name, last_name } = req.query;
   if (!caller_id || !/^\+1\d{10}$/.test(caller_id)) {
     return res.status(400).json({ success: false, status: "error", errors: ["Invalid or missing caller_id. Expected +1XXXXXXXXXX"] });
   }
 
-  const apiUrl = `https://growxmarketingservices.trackdrive.com/api/v1/inbound_webhooks/ping/check_for_available_buyers?trackdrive_number=${encodeURIComponent(TRACKDRIVE_NUMBER_2)}&traffic_source_id=${encodeURIComponent(TRAFFIC_SOURCE_ID_2)}&caller_id=${encodeURIComponent(caller_id)}`;
+  // Build the base URL with required parameters
+  let apiUrl = `https://growxmarketingservices.trackdrive.com/api/v1/inbound_webhooks/ping/check_for_available_buyers?trackdrive_number=${encodeURIComponent(TRACKDRIVE_NUMBER_2)}&traffic_source_id=${encodeURIComponent(TRAFFIC_SOURCE_ID_2)}&caller_id=${encodeURIComponent(caller_id)}`;
+  
+  // Add additional parameters if provided
+  if (zip) apiUrl += `&zip=${encodeURIComponent(zip)}`;
+  if (age) apiUrl += `&age=${encodeURIComponent(age)}`;
+  if (first_name) apiUrl += `&first_name=${encodeURIComponent(first_name)}`;
+  if (last_name) apiUrl += `&last_name=${encodeURIComponent(last_name)}`;
 
   try {
     const upstream = await axiosWithTimeout(apiUrl, { method: "GET" }, 8000);
     return res.status(upstream.status).json(upstream.data);
   } catch (err) {
-    console.error("Ping upstream error:", err.message || err);
+    console.error("Ping2 upstream error:", err.message || err);
 
     if (axios.isCancel(err)) {
       return res.status(504).json({ success: false, status: "timeout", errors: ["Upstream request timed out"] });

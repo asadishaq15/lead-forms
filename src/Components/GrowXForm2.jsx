@@ -13,12 +13,9 @@ export default function GrowXForm2() {
     last_name: "",
   });
 
-  const [buyerVerified, setBuyerVerified] = useState(false);
-  const [isCheckingBuyers, setIsCheckingBuyers] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
-  const [pingId, setPingId] = useState("");
   const [forwardingNumber, setForwardingNumber] = useState("");
 
   // Validate phone number format: +1 followed by 10 digits
@@ -33,43 +30,7 @@ export default function GrowXForm2() {
     return !isNaN(ageNum) && ageNum >= 18 && ageNum <= 120;
   };
 
-  // Buyer verification step (ping)
-  const verifyBuyer = async (e) => {
-    e.preventDefault();
-    setError(null);
-  
-    if (!isValidPhone(formData.caller_id)) {
-      setError("Please enter a valid US phone number in format: +1XXXXXXXXXX");
-      return;
-    }
-  
-    setIsCheckingBuyers(true);
-    setBuyerVerified(false);
-    setPingId("");
-  
-    try {
-      const url = `/api/ping2?trackdrive_number=${encodeURIComponent(TRACKDRIVE_NUMBER)}&traffic_source_id=${encodeURIComponent(TRAFFIC_SOURCE_ID)}&caller_id=${encodeURIComponent(formData.caller_id)}`;
-      const response = await fetch(url);
-      const data = await response.json();
-  
-      if (data.success && data.buyers && data.buyers.length > 0 && data.buyers[0].ping_id) {
-        setBuyerVerified(true);
-        setPingId(data.buyers[0].ping_id);
-      } else {
-        setError(
-          (data.errors && data.errors.join(", ")) ||
-            data.status ||
-            "No buyers are available at the moment."
-        );
-      }
-    } catch (err) {
-      setError("Network error: " + err.message);
-    }
-    
-    setIsCheckingBuyers(false);
-  };
-  
-  // Main form submission
+  // Handle form submission with all data via ping endpoint
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -96,53 +57,44 @@ export default function GrowXForm2() {
       return;
     }
   
-    if (!pingId) {
-      setError("Please verify your phone number first");
-      return;
-    }
-  
     setIsSubmitting(true);
   
-    // Prepare data for POST request
-    const postData = {
-      ...formData,
-      ping_id: pingId,
-      trackdrive_number: TRACKDRIVE_NUMBER,
-      traffic_source_id: TRAFFIC_SOURCE_ID
-    };
-  
     try {
-      const response = await fetch("/api/post2", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(postData),
-      });
+      // Build the ping URL with all form data as query parameters
+      const pingUrl = `/api/ping2?trackdrive_number=${encodeURIComponent(TRACKDRIVE_NUMBER)}&traffic_source_id=${encodeURIComponent(TRAFFIC_SOURCE_ID)}&caller_id=${encodeURIComponent(formData.caller_id)}&zip=${encodeURIComponent(formData.zip)}&age=${encodeURIComponent(formData.age)}&first_name=${encodeURIComponent(formData.first_name)}&last_name=${encodeURIComponent(formData.last_name)}`;
       
-      const data = await response.json();
+      const pingResponse = await fetch(pingUrl);
+      const pingData = await pingResponse.json();
   
-      if (data.success) {
-        setSuccess(true);
-        setForwardingNumber(data.forwarding_number || "");
-        
-        // Reset form
-        setBuyerVerified(false);
-        setPingId("");
-        setFormData({
-          caller_id: "",
-          zip: "",
-          age: "",
-          first_name: "",
-          last_name: "",
-        });
-      } else {
+      if (!pingData.success || !pingData.buyers || pingData.buyers.length === 0) {
         setError(
-          (data.errors && data.errors.join(", ")) ||
-            data.status ||
-            "Submission failed. Please try again."
+          (pingData.errors && pingData.errors.join(", ")) ||
+            pingData.status ||
+            "No buyers are available at the moment."
         );
+        setIsSubmitting(false);
+        return;
       }
+
+      // If ping is successful, consider the submission successful
+      setSuccess(true);
+      
+      // Use any information from the ping response directly
+      if (pingData.forwarding_number || (pingData.buyers && pingData.buyers[0] && pingData.buyers[0].forwarding_number)) {
+        setForwardingNumber(pingData.forwarding_number || pingData.buyers[0].forwarding_number);
+      } else {
+        // In a real implementation, you might want to set a default number
+        setForwardingNumber(TRACKDRIVE_NUMBER);
+      }
+      
+      // Reset form
+      setFormData({
+        caller_id: "",
+        zip: "",
+        age: "",
+        first_name: "",
+        last_name: "",
+      });
     } catch (err) {
       setError("Network error: " + err.message);
     }
@@ -204,57 +156,25 @@ export default function GrowXForm2() {
           </div>
         )}
 
-        {buyerVerified && !success && (
-          <div className="mx-4 mt-4 p-3 bg-blue-50 border-l-4 border-blue-500 rounded-md">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-blue-700">
-                  Phone verified! Please complete the form to proceed.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="px-6 py-6 space-y-5">
           {/* Phone Number / Caller ID field */}
           <div>
             <label htmlFor="caller_id" className="block text-sm font-medium text-gray-700 mb-1">
               Phone Number <span className="text-red-500">*</span>
             </label>
-            <div className="relative">
-              <input
-                type="tel"
-                id="caller_id"
-                name="caller_id"
-                value={formData.caller_id}
-                onChange={(e) => {
-                  setFormData((prev) => ({ ...prev, caller_id: e.target.value }));
-                  setBuyerVerified(false);
-                  setPingId("");
-                  setError(null);
-                }}
-                className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
-                placeholder="+17771234567"
-                required
-                disabled={buyerVerified}
-              />
-              <button
-                type="button"
-                onClick={verifyBuyer}
-                disabled={isCheckingBuyers || buyerVerified}
-                className={`absolute right-2 top-2 px-3 py-1 rounded text-sm font-medium text-white 
-                ${isCheckingBuyers || buyerVerified ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"} 
-                transition-colors`}
-              >
-                {isCheckingBuyers ? "Checking..." : buyerVerified ? "Verified" : "Verify"}
-              </button>
-            </div>
+            <input
+              type="tel"
+              id="caller_id"
+              name="caller_id"
+              value={formData.caller_id}
+              onChange={(e) => {
+                setFormData((prev) => ({ ...prev, caller_id: e.target.value }));
+                setError(null);
+              }}
+              className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
+              placeholder="+17771234567"
+              required
+            />
             <p className="mt-1 text-xs text-gray-500">Format: +1XXXXXXXXXX</p>
           </div>
 
@@ -269,12 +189,9 @@ export default function GrowXForm2() {
                 name="first_name"
                 value={formData.first_name}
                 onChange={(e) => setFormData((prev) => ({ ...prev, first_name: e.target.value }))}
-                className={`block w-full px-4 py-3 rounded-lg border border-gray-300 transition-colors ${
-                  !buyerVerified ? "bg-gray-100" : "focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
-                }`}
+                className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
                 placeholder="John"
                 required
-                disabled={!buyerVerified}
               />
             </div>
             <div>
@@ -287,12 +204,9 @@ export default function GrowXForm2() {
                 name="last_name"
                 value={formData.last_name}
                 onChange={(e) => setFormData((prev) => ({ ...prev, last_name: e.target.value }))}
-                className={`block w-full px-4 py-3 rounded-lg border border-gray-300 transition-colors ${
-                  !buyerVerified ? "bg-gray-100" : "focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
-                }`}
+                className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
                 placeholder="Doe"
                 required
-                disabled={!buyerVerified}
               />
             </div>
           </div>
@@ -307,13 +221,10 @@ export default function GrowXForm2() {
               name="zip"
               value={formData.zip}
               onChange={(e) => setFormData((prev) => ({ ...prev, zip: e.target.value }))}
-              className={`block w-full px-4 py-3 rounded-lg border border-gray-300 transition-colors ${
-                !buyerVerified ? "bg-gray-100" : "focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
-              }`}
+              className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
               placeholder="12345"
               maxLength="5"
               required
-              disabled={!buyerVerified}
             />
             <p className="mt-1 text-xs text-gray-500">5-digit US ZIP code</p>
           </div>
@@ -328,27 +239,22 @@ export default function GrowXForm2() {
               name="age"
               value={formData.age}
               onChange={(e) => setFormData((prev) => ({ ...prev, age: e.target.value }))}
-              className={`block w-full px-4 py-3 rounded-lg border border-gray-300 transition-colors ${
-                !buyerVerified ? "bg-gray-100" : "focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
-              }`}
+              className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
               placeholder="42"
               min="18"
               max="120"
               required
-              disabled={!buyerVerified}
             />
           </div>
 
           <div className="pt-2">
             <button
               type="submit"
-              disabled={isSubmitting || !buyerVerified}
+              disabled={isSubmitting}
               className={`w-full px-6 py-3 rounded-lg font-medium text-white ${
-                !buyerVerified 
-                  ? "bg-gray-400 cursor-not-allowed" 
-                  : isSubmitting
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-700 opacity-75 cursor-not-allowed" 
-                    : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
+                isSubmitting
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-700 opacity-75 cursor-not-allowed" 
+                  : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
               } transition-colors shadow-md`}
             >
               {isSubmitting ? (
@@ -359,10 +265,8 @@ export default function GrowXForm2() {
                   </svg>
                   Processing...
                 </>
-              ) : !buyerVerified ? (
-                "Verify Your Phone First"
               ) : (
-                "Submit Information"
+                "Submit"
               )}
             </button>
           </div>
