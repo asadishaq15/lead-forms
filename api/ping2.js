@@ -6,7 +6,9 @@ export default async function handler(req, res) {
       traffic_source_id, 
       caller_id,
       zip,
-      age,
+      dob_mm,
+      dob_dd,
+      dob_yyyy,
       first_name,
       last_name 
     } = req.query;
@@ -25,7 +27,9 @@ export default async function handler(req, res) {
     
     // Add the additional parameters to the URL if they exist
     if (zip) apiUrl += `&zip=${encodeURIComponent(zip)}`;
-    if (age) apiUrl += `&age=${encodeURIComponent(age)}`;
+    if (dob_mm) apiUrl += `&dob_mm=${encodeURIComponent(dob_mm)}`;
+    if (dob_dd) apiUrl += `&dob_dd=${encodeURIComponent(dob_dd)}`;
+    if (dob_yyyy) apiUrl += `&dob_yyyy=${encodeURIComponent(dob_yyyy)}`;
     if (first_name) apiUrl += `&first_name=${encodeURIComponent(first_name)}`;
     if (last_name) apiUrl += `&last_name=${encodeURIComponent(last_name)}`;
     
