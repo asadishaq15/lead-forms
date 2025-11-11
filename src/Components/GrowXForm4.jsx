@@ -155,7 +155,7 @@ export default function GrowXForm4() {
       <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
         <div className="bg-gradient-to-r from-blue-700 to-indigo-800 py-6 px-6">
           <h2 className="text-center text-2xl font-bold text-white">
-            SSDI Benefits Eligibility Check
+          SSDI CPA FPS
           </h2>
         </div>
 
@@ -315,7 +315,7 @@ export default function GrowXForm4() {
               ) : !buyerVerified ? (
                 "Verify Your Phone First"
               ) : (
-                "Check Eligibility"
+                "Submit"
               )}
             </button>
           </div>
