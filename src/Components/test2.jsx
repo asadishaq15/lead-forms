@@ -51,13 +51,13 @@ const Test2 = () => {
     
     const outerBubblesData = [
       { name: 'Brand & Creative Portal' },
-      { name: 'Catalog & Product Data Hub' },
-      { name: 'Streaming Frameworks' },
-      { name: 'Identity Auth Layer' },
+      { name: 'Dealer & Distributive Portal' },
+      { name: 'Influencer & Referral Portal' },
+      { name: 'Marketplace & Retail Channel' },
       { name: 'Onboarding & HR Platform' },
       { name: 'Fulfillment & Logistics' },
-      { name: 'GraphQL API Mesh' },
-      { name: 'Marketplace & Retail Channel' }
+      { name: 'Onboarding & HR Platform' },
+      { name: 'Streaming Frameworks' }
     ];
     
     for (let i = 0; i < outerBubblesCount; i++) {
@@ -91,10 +91,10 @@ const Test2 = () => {
     const radius = 220;
     
     const innerBubblesData = [
-      { name: 'Identity Auth Layer' },
-      { name: 'Streaming Frameworks' },
-      { name: 'Brand & Creative Portal' },
-      { name: 'Analytics Data Warehouse' }
+      { name: 'Analytics Data Warehouse' },
+      { name: 'Identity  Auth Layer' },
+      { name: 'GraphQL API Mesh' },
+      { name: 'Workflow Automation Engine' }
     ];
     
     for (let i = 0; i < innerBubblesCount; i++) {
