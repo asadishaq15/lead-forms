@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import './PlatformzOrbital.css';
 
 const PlatformzOrbital = () => {
   const shootingStarRef = useRef(null);
