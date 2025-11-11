@@ -196,12 +196,19 @@ app.get("/api/ping3", async (req, res) => {
     return res.status(500).json({ success: false, status: "error", errors: ["Server misconfiguration"] });
   }
 
-  const { caller_id } = req.query;
+  const { caller_id, zip, dob_mm, dob_dd, dob_yyyy } = req.query;
   if (!caller_id || !/^\+1\d{10}$/.test(caller_id)) {
     return res.status(400).json({ success: false, status: "error", errors: ["Invalid or missing caller_id. Expected +1XXXXXXXXXX"] });
   }
 
-  const apiUrl = `https://growxmarketingservices.trackdrive.com/api/v1/inbound_webhooks/ping/check_for_available_buyers?trackdrive_number=${encodeURIComponent(TRACKDRIVE_NUMBER_3)}&traffic_source_id=${encodeURIComponent(TRAFFIC_SOURCE_ID_3)}&caller_id=${encodeURIComponent(caller_id)}`;
+  // Build the base URL with required parameters
+  let apiUrl = `https://growxmarketingservices.trackdrive.com/api/v1/inbound_webhooks/ping/check_for_available_buyers?trackdrive_number=${encodeURIComponent(TRACKDRIVE_NUMBER_3)}&traffic_source_id=${encodeURIComponent(TRAFFIC_SOURCE_ID_3)}&caller_id=${encodeURIComponent(caller_id)}`;
+  
+  // Add additional parameters if provided
+  if (zip) apiUrl += `&zip=${encodeURIComponent(zip)}`;
+  if (dob_mm && dob_dd && dob_yyyy) {
+    apiUrl += `&dob_mm=${encodeURIComponent(dob_mm)}&dob_dd=${encodeURIComponent(dob_dd)}&dob_yyyy=${encodeURIComponent(dob_yyyy)}`;
+  }
 
   try {
     const upstream = await axiosWithTimeout(apiUrl, { method: "GET" }, 8000);

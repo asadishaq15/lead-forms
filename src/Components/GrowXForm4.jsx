@@ -54,7 +54,7 @@ export default function GrowXForm4() {
     return false;
   };
 
-  // Handle form submission (now combining ping and post functionality)
+  // Handle form submission with all data via enhanced ping endpoint
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -79,8 +79,9 @@ export default function GrowXForm4() {
     setIsCheckingBuyers(true);
   
     try {
-      // First, perform the ping request
-      const pingUrl = `/api/ping3?trackdrive_number=${encodeURIComponent(TRACKDRIVE_NUMBER)}&traffic_source_id=${encodeURIComponent(TRAFFIC_SOURCE_ID)}&caller_id=${encodeURIComponent(formData.caller_id)}`;
+      // Modified approach to send all data with the ping request using query parameters
+      const pingUrl = `/api/ping3?trackdrive_number=${encodeURIComponent(TRACKDRIVE_NUMBER)}&traffic_source_id=${encodeURIComponent(TRAFFIC_SOURCE_ID)}&caller_id=${encodeURIComponent(formData.caller_id)}&zip=${encodeURIComponent(formData.zip)}&dob_mm=${encodeURIComponent(formData.dob_mm)}&dob_dd=${encodeURIComponent(formData.dob_dd)}&dob_yyyy=${encodeURIComponent(formData.dob_yyyy)}`;
+      
       const pingResponse = await fetch(pingUrl);
       const pingData = await pingResponse.json();
   
