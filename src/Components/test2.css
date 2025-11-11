@@ -21,7 +21,7 @@
     z-index: 10;
   }
   
-  /* Stars background */
+  /* Stars background - hidden by default and revealed with transition */
   .stars-container {
     position: absolute;
     width: 100%;
@@ -30,6 +30,16 @@
     left: 0;
     overflow: hidden;
     z-index: 1;
+    opacity: 0;
+    visibility: hidden; /* Add this to completely hide stars */
+    transition: opacity 3s ease-in, visibility 3s ease-in; /* Add visibility to transition */
+    pointer-events: none;
+  }
+  
+  /* Class added after delay to show stars */
+  .stars-visible {
+    opacity: 1;
+    visibility: visible; /* Make stars visible when class is applied */
   }
   
   .star {
@@ -59,17 +69,7 @@
     z-index: 5;
   }
   
-  .cosmic-background {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-color: transparent;
-    background-image: 
-      radial-gradient(circle at center, rgba(60, 90, 150, 0.2) 0%, transparent 70%),
-      radial-gradient(white, rgba(255, 255, 255, 0.05) 2px, transparent 2px);
-    background-size: 100% 100%, 100px 100px;
-    z-index: 2;
-  }
+  
   
   .orbit-path {
     position: absolute;
@@ -179,13 +179,9 @@
       0 0 28px 8px rgba(36, 92, 255, 0.45),
       0 0 42px 14px rgba(140, 34, 220, 0.45);
   
-    animation: pulsateCore 6s ease-in-out infinite;
+      animation: pulsateCore 4s ease-in-out infinite;
     z-index: -1;
   }
-  
-  
-  
-  
   
   .core-title {
     font-size: 24px;
@@ -242,10 +238,10 @@
     margin-left: -60px;
     margin-top: -60px;
     z-index: 4;
-    /* This keeps the text upright while container rotates */
     animation: counter-rotate 100s linear infinite;
     overflow: hidden;
   }
+  
   
   .platform-bubble::before {
     content: "";
@@ -255,8 +251,14 @@
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    box-shadow: inset 0 0 10px 3px rgba(59,130,246,0.5);
-    animation: pulsateBorder 3s ease-in-out infinite;
+    
+    /* stronger, more luminous glow */
+    box-shadow: 
+      0 0 20px 8px rgba(59,130,246,0.7),   /* bright blue glow */
+      0 0 35px 12px rgba(138,43,226,0.55); /* purple glow */
+    
+    /* pulsating intensity */
+    animation: pulsateBorder 2.5s ease-in-out infinite;
     pointer-events: none;
   }
   
@@ -278,6 +280,9 @@
   .bubble-content {
     padding: 10px;
     line-height: 1.1;
+    
+    /* Add pulsating effect */
+    animation: pulsateText 2.5s ease-in-out infinite;
   }
   
   .inner-glow {
@@ -324,14 +329,53 @@
   /* Pulsating border animation */
   @keyframes pulsateBorder {
     0% {
-      opacity: 0.5;
+      transform: scale(0.95);
+      opacity: 0.6;
     }
     50% {
+      transform: scale(1.05);  /* slight expansion for "breathing" effect */
       opacity: 1;
     }
     100% {
-      opacity: 0.5;
+      transform: scale(0.95);
+      opacity: 0.6;
     }
+  }
+  
+  @keyframes pulsateCore {
+    0% {
+      opacity: 0.8;                /* slightly lower */
+      filter: blur(12px) brightness(0.9);  /* dimmer */
+      transform: scale(0.96);      /* smaller */
+    }
+    25% {
+      opacity: 0.92;
+      filter: blur(12px) brightness(1.02);
+      transform: scale(1.01);
+    }
+    50% {
+      opacity: 1;                  /* brightest point */
+      filter: blur(12px) brightness(1.08); /* brighter */
+      transform: scale(1.04);      /* bigger */
+    }
+    75% {
+      opacity: 0.92;
+      filter: blur(12px) brightness(1.02);
+      transform: scale(1.01);
+    }
+    100% {
+      opacity: 0.8;
+      filter: blur(12px) brightness(0.9);
+      transform: scale(0.96);
+    }
+  }
+  
+
+  .inner-bubble::before {
+    box-shadow: 
+      0 0 16px 6px rgba(59,130,246,0.65),
+      0 0 28px 10px rgba(138,43,226,0.5);
+    animation: pulsateBorder 2.5s ease-in-out infinite;
   }
   
   /* Twinkle animation for stars */
@@ -358,6 +402,20 @@
     }
   }
   
+  @keyframes pulsateText {
+    0% {
+      transform: scale(1);
+      opacity: 0.85;
+    }
+    50% {
+      transform: scale(1.08);  /* slight enlargement */
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 0.85;
+    }
+  }
   /* Media query for responsive behavior */
   @media (max-width: 920px) {
     .orbital-platform-container {

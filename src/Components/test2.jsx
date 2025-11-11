@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './test2.css';
 
 const Test2 = () => {
@@ -8,6 +8,8 @@ const Test2 = () => {
   const innerCircleRef = useRef(null);
   const innerOrbitRef = useRef(null);
   const shootingStarRef = useRef(null);
+  const [showStars, setShowStars] = useState(false);
+  const [showShootingStars, setShowShootingStars] = useState(false);
 
   useEffect(() => {
     const outerCircle = outerCircleRef.current;
@@ -21,9 +23,17 @@ const Test2 = () => {
       innerCircle.style.animation = 'glow 10s ease-in-out infinite';
     }
 
+    // Delay showing stars
+    const starsTimer = setTimeout(() => {
+      setShowStars(true);
+    }, 5500); // 5.5 seconds delay
+
+    const shootingStarsVisibilityTimer = setTimeout(() => {
+        setShowShootingStars(true);
+      }, 6000);
     // Shooting star logic
     const createShootingStar = () => {
-      if (!shootingStarRef.current) return;
+        if (!shootingStarRef.current || !showShootingStars) return;
       const container = shootingStarRef.current;
       const star = document.createElement('div');
       star.classList.add('shooting-star');
@@ -37,12 +47,21 @@ const Test2 = () => {
       setTimeout(() => star.remove(), 800);
     };
 
-    const interval = setInterval(() => {
-      if (Math.random() < 0.28) createShootingStar();
-    }, 900);
-
-    return () => clearInterval(interval);
-  }, []);
+    // Delay shooting stars to start with the background stars
+    const shootingStarsTimer = setTimeout(() => {
+        const interval = setInterval(() => {
+          if (Math.random() < 0.28) createShootingStar();
+        }, 900);
+        
+        return () => clearInterval(interval);
+      }, 6000);
+    
+      return () => {
+        clearTimeout(starsTimer);
+        clearTimeout(shootingStarsTimer);
+        clearTimeout(shootingStarsVisibilityTimer);
+      };
+    }, [showShootingStars]); 
 
   // Create the outer platform bubbles
   const createOuterBubbles = () => {
@@ -142,8 +161,8 @@ const Test2 = () => {
 
   return (
     <div className="full-page-container">
-      {/* Stars background */}
-      <div className="stars-container">
+      {/* Stars background with conditional class for fade-in effect */}
+      <div className={`stars-container ${showStars ? 'stars-visible' : ''}`}>
         {createStars()}
       </div>
 
@@ -151,7 +170,6 @@ const Test2 = () => {
       <div ref={shootingStarRef} className="shooting-stars-container" />
       
       <div className="orbital-platform-container">
-        <div className="cosmic-background"></div>
         
         {/* Center platform core */}
         <div className="platform-core">
