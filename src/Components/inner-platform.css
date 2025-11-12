@@ -1,4 +1,5 @@
 /* Full page container - centered page */
+
 .full-page-container {
     width: 100%;
     height: 100vh;
@@ -21,6 +22,36 @@
     align-items: center;
     overflow: visible;
     z-index: 10;
+  }
+  
+  .inner-solid-ring {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 460px;              /* same radius as inner-orbit-circle */
+    height: 460px;
+    border-radius: 50%;
+    border: 1px solid rgba(59, 130, 246, 0.4); /* same as core-slim-ring */
+    background: transparent;
+    box-shadow: none;          /* solid appearance, no glow */
+    pointer-events: none;
+    z-index: 3;                /* sits behind bubbles */
+  }
+  
+  .orbit-path.inner-orbit.duplicate-ring {
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+    width: 480px;   /* same radius/size as main inner orbit */
+    height: 480px;
+    border-radius: 50%;
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    background: transparent;
+    box-shadow: none;
+    pointer-events: none;
+    z-index: 3; /* adjust if you want it above/below the other ring */
   }
   
   /* visible inner orbit ring */
@@ -57,6 +88,7 @@
     background-color: rgba(59, 130, 246, 0.4);
     transform-origin: left center;
     z-index: 1;
+    pointer-events: none;
   }
   
   /* Animated energy pulse on connection lines */
@@ -67,13 +99,13 @@
     border-radius: 50%;
     background-color: #3b82f6;
     top: -4px;
-    animation: energyPulse 3s infinite;
+    animation: energyPulseReverse 3s infinite;
   }
   
   /* Bubble style */
   .platform-bubble {
     position: relative;
-    width: 120px;
+    width: 180px;
     height: 120px;
     border-radius: 50%;
     background-image: radial-gradient(
@@ -88,12 +120,11 @@
     align-items: center;
     color: white;
     text-align: center;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 700;
     margin-left: -60px;
     margin-top: -60px;
     z-index: 4;
-    animation: counter-rotate 140s linear infinite;
     overflow: hidden;
     transition: transform 180ms ease;
     box-shadow: 0 0 10px 0 rgba(59,130,246,0.5);
@@ -102,35 +133,30 @@
   
   /* Inner bubble adjustments */
   .inner-bubble {
-    width: 110px;
-    height: 110px;
+    width: 120px;
+    height: 120px;
     margin-left: -55px;
     margin-top: -55px;
     line-height: 1.3;
   }
   
-  /* bubble text style */
-  .bubble-content {
+  /* NEW: Counter-rotate class for consistent text orientation */
+  .counter-rotate-text {
     padding: 10px;
-    transform: rotate(0deg);
-    animation: maintain-orientation 140s linear infinite;
+    animation: counter-rotate 140s linear infinite;
   }
   
-  /* Extra text below bubbles */
-  .bubble-extra-text {
-    position: absolute;
-    color: white;
-    font-size: 12px;
-    text-align: center;
-    animation: maintain-orientation 140s linear infinite;
-    width: 120px;
+  /* bubble text style - removed animation from here */
+  .bubble-content {
+    padding: 10px;
   }
+ 
   
   /* Core in center */
   .platform-core {
     position: relative;
-    width: 200px;
-    height: 200px;
+    width: 260px;
+    height: 260px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -141,7 +167,7 @@
     z-index: 5;
     background-image: radial-gradient(
       circle at center,
-      #3b82f6 0%,
+      #5b21b6 30%,
       #1e40af 60%,
       #1e3a8a 100%
     );
@@ -165,8 +191,8 @@
   /* Slim ring around the core */
   .core-slim-ring {
     position: absolute;
-    width: 220px;
-    height: 220px;
+    width: 200px;
+    height: 200px;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
@@ -174,7 +200,22 @@
     border: 1px solid rgba(59, 130, 246, 0.4);
     z-index: 3;
     pointer-events: none;
+    animation: coreRingPulsate 4s ease-in-out infinite;
+    box-shadow: 0 0 8px 2px rgba(59, 130, 246, 0.3);
   }
+  
+  .outer-text {
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 5;
+    pointer-events: none;
+    font-family: sans-serif;
+  }
+
   
   /* Keyframes */
   @keyframes rotate {
@@ -187,21 +228,52 @@
     to { transform: rotate(-360deg); }
   }
   
+  /* Original animation - kept for reference */
   @keyframes maintain-orientation {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
   }
   
-  @keyframes energyPulse {
-    0% { left: 0%; opacity: 1; }
-    100% { left: 100%; opacity: 0.2; }
+  @keyframes energyPulseReverse {
+    0% { left: 100%; opacity: 1; }
+    100% { left: 0%; opacity: 0.2; }
+  }
+  
+  @keyframes coreRingPulsate {
+    0% { 
+      width: 215px; 
+      height: 215px; 
+      border-color: rgba(59, 130, 246, 0.4);
+      box-shadow: 0 0 8px 2px rgba(59, 130, 246, 0.3);
+    }
+    50% { 
+      width: 225px; 
+      height: 225px; 
+      border-color: rgba(59, 130, 246, 0.8);
+      box-shadow: 0 0 12px 4px rgba(59, 130, 246, 0.6);
+    }
+    100% { 
+      width: 215px; 
+      height: 215px; 
+      border-color: rgba(59, 130, 246, 0.4);
+      box-shadow: 0 0 8px 2px rgba(59, 130, 246, 0.3);
+    }
   }
   
   /* responsive scaling */
   @media (max-width: 740px) {
+    
+    .outer-text {
+        font-size: 16px;
+        width: 400px;
+      }
+
     .orbital-platform-container.inner-only { transform: scale(0.78); }
   }
   
   @media (max-width: 500px) {
+    .outer-text {
+        font-size: 10px;
+      }
     .orbital-platform-container.inner-only { transform: scale(0.60); }
   }

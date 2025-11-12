@@ -57,8 +57,8 @@ function App() {
        <Route path="/ssdi-cpa-fps-2" element={<GrowXForm4 />} /> 
 
           {/* <Route path="/weaves" element={<GradientWaves />} />  
-         <Route path="/test" element={<PlatformzOrbital />} /> 
-         <Route path="/platformzos2" element={<InnerPlatform />} />  */}
+         <Route path="/test" element={<PlatformzOrbital />} />  */}
+         <Route path="/platformzos2" element={<InnerPlatform />} /> 
         <Route path="/platformzos" element={<Test2 />} /> 
       </Routes>
     </Router>

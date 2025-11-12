@@ -20,26 +20,61 @@ const InnerPlatform = () => {
 
   const createInnerBubbles = () => {
     const bubbles = [];
-    const radius = 180;
-
+    const orbitRadius = 230; // Distance from center to bubble centers
+    const coreRadius = 110; // Core slim ring radius (220px / 2)
+  
     const innerBubblesData = [
       { name: "ORDER MANAGEMENT", position: "top" },
-      { name: "MARKETPLACES & RETAIL CHANNELS", position: "right", extraText: "1P & 3P MARKETPLACES" },
-      { name: "PORTALS", position: "bottom", extraText: "DISTRIBUTION CHANNELS" },
+      { 
+        name: "MARKETPLACES & RETAIL CHANNELS", 
+        position: "right",
+        outerText: "1P & 3P MARKETPLACES"
+      },
+      { 
+        name: "PORTALS", 
+        position: "bottom",
+        outerText: "DISTRIBUTION CHANNELS"
+      },
       { name: "FULFILLMENT & LOGISTICS", position: "left" },
     ];
-
+  
     for (let i = 0; i < innerBubblesCount; i++) {
       const angle = (i / innerBubblesCount) * 2 * Math.PI - Math.PI / 4; // Start from top
-      const x = Math.round(radius * Math.cos(angle));
-      const y = Math.round(radius * Math.sin(angle));
+      const x = Math.round(orbitRadius * Math.cos(angle));
+      const y = Math.round(orbitRadius * Math.sin(angle));
+  
+      // Calculate line length - distance from core ring to bubble position
+      const lineLength = orbitRadius - coreRadius;
       
-      // Calculate connection line coordinates
-      const lineLength = radius;
-      const lineAngle = angle;
-      const lineEndX = lineLength * Math.cos(lineAngle);
-      const lineEndY = lineLength * Math.sin(lineAngle);
+      // Determine if this bubble has outer text
+      const hasOuterText = innerBubblesData[i].outerText;
 
+      // Calculate outer text position - move it farther from the center
+      const outerTextPositioning = () => {
+        // Handle the PORTALS (bottom) and MARKETPLACES (right) differently
+        if (innerBubblesData[i].position === "bottom") {
+          return {
+            position: 'absolute',
+            width: '150px',
+            textAlign: 'center',
+            top: '70px',
+            right: '90%',
+            transform: 'translateX(-50%)',
+            animation: 'counter-rotate 140s linear infinite'
+          };
+        } else if (innerBubblesData[i].position === "right") {
+          return {
+            position: 'absolute',
+            width: '120px',
+            textAlign: 'left',
+            right: '-125px',
+            top: '20%',
+            transform: 'translateY(-50%)',
+            animation: 'counter-rotate 140s linear infinite'
+          };
+        }
+      };
+  
       bubbles.push(
         <div
           className="platform-bubble-container"
@@ -49,41 +84,42 @@ const InnerPlatform = () => {
           }}
         >
           {/* Connection line */}
-          <div 
+          <div
             className="connection-line"
             style={{
-              width: `${radius}px`,
-              transform: `rotate(${(angle * 180) / Math.PI}deg) translateX(${-radius / 2}px)`,
-              left: `-${x}px`,
-              top: `-${y}px`
+              width: `${lineLength}px`,
+              transform: `rotate(${(angle * 180) / Math.PI + 180}deg)`, // +180 to point toward core
+              transformOrigin: "0 0",
+              position: "absolute",
+              left: "0",
+              top: "0",
             }}
           >
             <div className="energy-pulse"></div>
           </div>
-          
-          <div className="platform-bubble inner-bubble">
-            <div className="bubble-content">{innerBubblesData[i].name}</div>
-          </div>
-          
-          {/* Extra text below specific bubbles */}
-          {innerBubblesData[i].extraText && (
-            <div 
-              className="bubble-extra-text"
-              style={{
-                transform: `rotate(${(-angle * 180) / Math.PI}deg)`,
-                bottom: innerBubblesData[i].position === "bottom" ? "-40px" : "auto",
-                right: innerBubblesData[i].position === "right" ? "-40px" : "auto"
-              }}
-            >
-              {innerBubblesData[i].extraText}
+
+          <div className="bubble-rot-wrapper">
+            <div className="platform-bubble inner-bubble">
+              <div className="bubble-label">{innerBubblesData[i].name}</div>
             </div>
-          )}
+  
+            {/* Render outer text if present */}
+            {hasOuterText && (
+             <div 
+             className={`outer-text ${innerBubblesData[i].position}`}
+             style={outerTextPositioning()}
+           >
+             {innerBubblesData[i].outerText}
+           </div>
+            )}
+          </div>
         </div>
       );
     }
-
+  
     return bubbles;
   };
+  
 
   return (
     <div className="full-page-container">
@@ -96,9 +132,8 @@ const InnerPlatform = () => {
             <div className="core-title">PLATFORM</div>
           </div>
         </div>
-
-        <div className="orbit-path inner-orbit" />
-
+        
+        <div className="inner-solid-ring" />
         <div ref={innerOrbitRef} className="inner-orbit-circle">
           {createInnerBubbles()}
         </div>
