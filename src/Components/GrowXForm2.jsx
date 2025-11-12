@@ -85,8 +85,8 @@ export default function GrowXForm2() {
     setIsSubmitting(true);
   
     try {
-      // Build the ping URL directly with query parameters, similar to GrowXForm4
-      const pingUrl = `/api/ping2?caller_id=${encodeURIComponent(formData.caller_id)}&zip=${encodeURIComponent(formData.zip)}&dob_mm=${encodeURIComponent(formData.dob_mm)}&dob_dd=${encodeURIComponent(formData.dob_dd)}&dob_yyyy=${encodeURIComponent(formData.dob_yyyy)}&first_name=${encodeURIComponent(formData.first_name)}&last_name=${encodeURIComponent(formData.last_name)}`;
+      // Build the ping URL directly with query parameters, now including traffic_source_id
+      const pingUrl = `/api/ping2?caller_id=${encodeURIComponent(formData.caller_id)}&zip=${encodeURIComponent(formData.zip)}&dob_mm=${encodeURIComponent(formData.dob_mm)}&dob_dd=${encodeURIComponent(formData.dob_dd)}&dob_yyyy=${encodeURIComponent(formData.dob_yyyy)}&first_name=${encodeURIComponent(formData.first_name)}&last_name=${encodeURIComponent(formData.last_name)}&traffic_source_id=${encodeURIComponent(TRAFFIC_SOURCE_ID)}`;
       
       const pingResponse = await fetch(pingUrl);
       const pingData = await pingResponse.json();
