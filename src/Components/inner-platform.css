@@ -1,0 +1,207 @@
+/* Full page container - centered page */
+.full-page-container {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    background-color: #000;
+    background-image: radial-gradient(circle at right, #05174F 0%, #000 80%);
+    overflow: hidden;
+  }
+  
+  /* Focused orbital container (inner-only) */
+  .orbital-platform-container.inner-only {
+    position: relative;
+    width: 560px;
+    height: 560px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: visible;
+    z-index: 10;
+  }
+  
+  /* visible inner orbit ring */
+  .orbit-path.inner-orbit {
+    position: absolute;
+    width: 440px;
+    height: 440px;
+    border-radius: 50%;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    z-index: 2;
+  }
+  
+  /* Rotating inner orbit container */
+  .inner-orbit-circle {
+    position: absolute;
+    width: 440px;
+    height: 440px;
+    z-index: 3;
+  }
+  
+  /* Bubble container positioning */
+  .platform-bubble-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: center;
+    pointer-events: auto;
+  }
+  
+  /* Connection lines between core and bubbles */
+  .connection-line {
+    position: absolute;
+    height: 2px;
+    background-color: rgba(59, 130, 246, 0.4);
+    transform-origin: left center;
+    z-index: 1;
+  }
+  
+  /* Animated energy pulse on connection lines */
+  .energy-pulse {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #3b82f6;
+    top: -4px;
+    animation: energyPulse 3s infinite;
+  }
+  
+  /* Bubble style */
+  .platform-bubble {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-image: radial-gradient(
+      circle at 30% 30%,
+      rgba(47,104,196,0.95) 0%,
+      rgba(24,51,140,0.9) 30%,
+      rgba(20,46,110,0.75) 60%,
+      rgba(16,38,90,0.85) 100%
+    );
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    margin-left: -60px;
+    margin-top: -60px;
+    z-index: 4;
+    animation: counter-rotate 140s linear infinite;
+    overflow: hidden;
+    transition: transform 180ms ease;
+    box-shadow: 0 0 10px 0 rgba(59,130,246,0.5);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+  }
+  
+  /* Inner bubble adjustments */
+  .inner-bubble {
+    width: 110px;
+    height: 110px;
+    margin-left: -55px;
+    margin-top: -55px;
+    line-height: 1.3;
+  }
+  
+  /* bubble text style */
+  .bubble-content {
+    padding: 10px;
+    transform: rotate(0deg);
+    animation: maintain-orientation 140s linear infinite;
+  }
+  
+  /* Extra text below bubbles */
+  .bubble-extra-text {
+    position: absolute;
+    color: white;
+    font-size: 12px;
+    text-align: center;
+    animation: maintain-orientation 140s linear infinite;
+    width: 120px;
+  }
+  
+  /* Core in center */
+  .platform-core {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    z-index: 5;
+    background-image: radial-gradient(
+      circle at center,
+      #3b82f6 0%,
+      #1e40af 60%,
+      #1e3a8a 100%
+    );
+    box-shadow: 0 0 20px 0 rgba(59,130,246,0.5);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+  }
+  
+  /* Core content */
+  .core-content {
+    z-index: 6;
+  }
+  
+  /* Core text sits above ring */
+  .core-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 1.2;
+  }
+  
+  /* Slim ring around the core */
+  .core-slim-ring {
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    z-index: 3;
+    pointer-events: none;
+  }
+  
+  /* Keyframes */
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  @keyframes counter-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(-360deg); }
+  }
+  
+  @keyframes maintain-orientation {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  @keyframes energyPulse {
+    0% { left: 0%; opacity: 1; }
+    100% { left: 100%; opacity: 0.2; }
+  }
+  
+  /* responsive scaling */
+  @media (max-width: 740px) {
+    .orbital-platform-container.inner-only { transform: scale(0.78); }
+  }
+  
+  @media (max-width: 500px) {
+    .orbital-platform-container.inner-only { transform: scale(0.60); }
+  }
