@@ -8,7 +8,9 @@ export default function GrowXForm2() {
   const [formData, setFormData] = useState({
     caller_id: "",
     zip: "",
-    age: "",
+    dob_mm: "",
+    dob_dd: "",
+    dob_yyyy: "",
     first_name: "",
     last_name: "",
   });
@@ -24,13 +26,36 @@ export default function GrowXForm2() {
   // Validate zip code: 5 digits
   const isValidZip = (zip) => /^\d{5}$/.test(zip);
   
-  // Validate age: between 18 and 120
-  const isValidAge = (age) => {
-    const ageNum = parseInt(age);
-    return !isNaN(ageNum) && ageNum >= 18 && ageNum <= 120;
+  // Validate DOB fields (including 18+ check)
+  const isValidDOB = () => {
+    const mm = parseInt(formData.dob_mm, 10);
+    const dd = parseInt(formData.dob_dd, 10);
+    const yyyy = parseInt(formData.dob_yyyy, 10);
+    
+    const isValidMonth = !isNaN(mm) && mm >= 1 && mm <= 12;
+    const isValidDay = !isNaN(dd) && dd >= 1 && dd <= 31;
+    const isValidYear = !isNaN(yyyy) && yyyy >= 1900 && yyyy <= 2050;
+    
+    // Additional validation for days in month
+    if (isValidMonth && isValidDay && isValidYear) {
+      const daysInMonth = new Date(yyyy, mm, 0).getDate();
+      if (dd > daysInMonth) return false;
+      
+      // Check if person is at least 18 years old
+      const today = new Date();
+      const birthDate = new Date(yyyy, mm - 1, dd);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age >= 18;
+    }
+    
+    return false;
   };
 
-  // Handle form submission with all data via ping endpoint
+  // Handle form submission — sends DOB instead of age
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -47,8 +72,8 @@ export default function GrowXForm2() {
       return;
     }
   
-    if (!isValidAge(formData.age)) {
-      setError("Please enter a valid age between 18 and 120");
+    if (!isValidDOB()) {
+      setError("Please enter a valid date of birth. You must be at least 18 years old.");
       return;
     }
     
@@ -60,12 +85,14 @@ export default function GrowXForm2() {
     setIsSubmitting(true);
   
     try {
-      // Build the ping URL with all form data as query parameters
-      const pingUrl = `/api/ping2?trackdrive_number=${encodeURIComponent(TRACKDRIVE_NUMBER)}&traffic_source_id=${encodeURIComponent(TRAFFIC_SOURCE_ID)}&caller_id=${encodeURIComponent(formData.caller_id)}&zip=${encodeURIComponent(formData.zip)}&age=${encodeURIComponent(formData.age)}&first_name=${encodeURIComponent(formData.first_name)}&last_name=${encodeURIComponent(formData.last_name)}`;
+      // NOTE: keep /api/ping2 if that's what your backend expects.
+      // If your backend expects ping3 (like your reference), change /api/ping2 to /api/ping3 here.
+      const pingUrl = `/api/ping2?trackdrive_number=${encodeURIComponent(TRACKDRIVE_NUMBER)}&traffic_source_id=${encodeURIComponent(TRAFFIC_SOURCE_ID)}&caller_id=${encodeURIComponent(formData.caller_id)}&zip=${encodeURIComponent(formData.zip)}&dob_mm=${encodeURIComponent(formData.dob_mm)}&dob_dd=${encodeURIComponent(formData.dob_dd)}&dob_yyyy=${encodeURIComponent(formData.dob_yyyy)}&first_name=${encodeURIComponent(formData.first_name)}&last_name=${encodeURIComponent(formData.last_name)}`;
       
       const pingResponse = await fetch(pingUrl);
       const pingData = await pingResponse.json();
   
+      // Keep the same success/buyer check you had before
       if (!pingData.success || !pingData.buyers || pingData.buyers.length === 0) {
         setError(
           (pingData.errors && pingData.errors.join(", ")) ||
@@ -83,7 +110,7 @@ export default function GrowXForm2() {
       if (pingData.forwarding_number || (pingData.buyers && pingData.buyers[0] && pingData.buyers[0].forwarding_number)) {
         setForwardingNumber(pingData.forwarding_number || pingData.buyers[0].forwarding_number);
       } else {
-        // In a real implementation, you might want to set a default number
+        // fallback
         setForwardingNumber(TRACKDRIVE_NUMBER);
       }
       
@@ -91,7 +118,9 @@ export default function GrowXForm2() {
       setFormData({
         caller_id: "",
         zip: "",
-        age: "",
+        dob_mm: "",
+        dob_dd: "",
+        dob_yyyy: "",
         first_name: "",
         last_name: "",
       });
@@ -115,7 +144,7 @@ export default function GrowXForm2() {
       <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
         <div className="bg-gradient-to-r from-blue-700 to-indigo-800 py-6 px-6">
           <h2 className="text-center text-2xl font-bold text-white">
-          SSDI CPA AKI
+            SSDI CPA AKI
           </h2>
         </div>
 
@@ -229,22 +258,62 @@ export default function GrowXForm2() {
             <p className="mt-1 text-xs text-gray-500">5-digit US ZIP code</p>
           </div>
 
+          {/* Date of Birth Fields (replaces Age) */}
           <div>
-            <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1">
-              Age <span className="text-red-500">*</span>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Date of Birth <span className="text-red-500">*</span>
             </label>
-            <input
-              type="number"
-              id="age"
-              name="age"
-              value={formData.age}
-              onChange={(e) => setFormData((prev) => ({ ...prev, age: e.target.value }))}
-              className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
-              placeholder="42"
-              min="18"
-              max="120"
-              required
-            />
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <input
+                  type="text"
+                  id="dob_mm"
+                  name="dob_mm"
+                  value={formData.dob_mm}
+                  onChange={(e) => setFormData((prev) => ({ 
+                    ...prev, 
+                    dob_mm: e.target.value.replace(/\D/g, '').slice(0, 2) 
+                  }))}
+                  className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
+                  placeholder="MM"
+                  maxLength="2"
+                  required
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  id="dob_dd"
+                  name="dob_dd"
+                  value={formData.dob_dd}
+                  onChange={(e) => setFormData((prev) => ({ 
+                    ...prev, 
+                    dob_dd: e.target.value.replace(/\D/g, '').slice(0, 2) 
+                  }))}
+                  className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
+                  placeholder="DD"
+                  maxLength="2"
+                  required
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  id="dob_yyyy"
+                  name="dob_yyyy"
+                  value={formData.dob_yyyy}
+                  onChange={(e) => setFormData((prev) => ({ 
+                    ...prev, 
+                    dob_yyyy: e.target.value.replace(/\D/g, '').slice(0, 4) 
+                  }))}
+                  className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
+                  placeholder="YYYY"
+                  maxLength="4"
+                  required
+                />
+              </div>
+            </div>
+            <p className="mt-1 text-xs text-gray-500">You must be at least 18 years old</p>
           </div>
 
           <div className="pt-2">
