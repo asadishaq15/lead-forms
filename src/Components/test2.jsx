@@ -264,7 +264,7 @@ const Test2 = () => {
       { name: 'Dealer & Distributive Portal' },
       { name: 'Influencer & Referral Portal' },
       { name: 'Marketplace & Retail Channel' },
-      { name: 'Onboarding & HR Platform' },
+      { name: 'Industrial Design & Manufacturing' },
       { name: 'Fulfillment & Logistics' },
       { name: 'Onboarding & HR Platform' },
       { name: 'Streaming Frameworks' }
