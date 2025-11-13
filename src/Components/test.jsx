@@ -1,231 +1,402 @@
-import React, { useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useRef, useState } from 'react';
+import './test2.css';
 
-const PlatformzOrbital = () => {
+const Test2 = () => {
+  const outerBubblesCount = 8;
+  const innerBubblesCount = 4;
+  const outerCircleRef = useRef(null);
+  const innerCircleRef = useRef(null);
+  const innerOrbitRef = useRef(null);
   const shootingStarRef = useRef(null);
 
-  // Shooting star logic
-  const createShootingStar = () => {
-    if (!shootingStarRef.current) return;
-    const container = shootingStarRef.current;
-    const star = document.createElement('div');
-    star.classList.add('shooting-star');
-    const startX = Math.random() * 80;
-    const startY = Math.random() * 40;
-    const length = Math.random() * 120 + 60;
-    star.style.left = `${startX}%`;
-    star.style.top = `${startY}%`;
-    star.style.width = `${length}px`;
-    container.appendChild(star);
-    setTimeout(() => star.remove(), 800);
-  };
+  // For background particle stars
+  const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+  const particlesRef = useRef([]);
+  const mouseRef = useRef({ x: 0, y: 0, active: false, returning: false });
+  const animationFrameRef = useRef(null);
+  const [containerDimensions, setContainerDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight
+  });
 
+  // Fade-in and shooting stars
+  const [showStars, setShowStars] = useState(false);
+  const [showShootingStars, setShowShootingStars] = useState(false);
+
+  // --- Animate stars as particles on canvas ---
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (Math.random() < 0.28) createShootingStar();
-    }, 900);
-    return () => clearInterval(interval);
+    if (!canvasRef.current || !containerRef.current) return;
+
+    const container = containerRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+
+    // Set canvas to full window size
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const updateDimensions = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      setContainerDimensions({ width, height });
+      canvas.width = width;
+      canvas.height = height;
+
+      // Clear existing particles and recreate them
+      particlesRef.current = [];
+      initializeParticles();
+    };
+
+    // Initialize particles in clusters and some distributed
+    const initializeParticles = () => {
+      const particleCount = 400; // tune as needed
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const spreadRadius = Math.min(width, height) * 0.33;
+
+      // Four clusters
+      createChunk(width * 0.28, height * 0.22, particleCount * 0.25, spreadRadius);
+      createChunk(width * 0.72, height * 0.20, particleCount * 0.22, spreadRadius);
+      createChunk(width * 0.24, height * 0.78, particleCount * 0.20, spreadRadius);
+      createChunk(width * 0.80, height * 0.74, particleCount * 0.21, spreadRadius);
+
+      // Some random
+      for (let i = 0; i < particleCount * 0.12; i++) {
+        const x = Math.random() * width;
+        const y = Math.random() * height;
+        particlesRef.current.push({
+          x,
+          y,
+          size: 0.6 + Math.random() * 1.2,
+          baseX: x,
+          baseY: y,
+          density: Math.random() * 30 + 1,
+          color: `rgba(59, 130, 246, ${Math.random() * 0.5 + 0.18})`,
+          velocityX: 0,
+          velocityY: 0,
+          friction: 0.95,
+        });
+      }
+    };
+
+    const createChunk = (centerX, centerY, count, spread) => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const radius = Math.random() * spread;
+        const x = Math.min(Math.max(centerX + Math.cos(angle) * radius, 0), width);
+        const y = Math.min(Math.max(centerY + Math.sin(angle) * radius, 0), height);
+        particlesRef.current.push({
+          x,
+          y,
+          size: 0.7 + Math.random() * 1.1,
+          baseX: x,
+          baseY: y,
+          density: Math.random() * 30 + 1,
+          color: `rgba(59, 130, 246, ${Math.random() * 0.5 + 0.26})`,
+          velocityX: 0,
+          velocityY: 0,
+          friction: 0.96,
+        });
+      }
+    };
+
+    initializeParticles();
+
+    // Mouse interaction
+    const handleMouseMove = (e) => {
+      const rect = container.getBoundingClientRect();
+      mouseRef.current = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+        active: true,
+        returning: false,
+      };
+    };
+
+    const handleMouseLeave = () => {
+      mouseRef.current.active = false;
+      mouseRef.current.returning = true;
+      particlesRef.current.forEach(p => {
+        p.velocityX = 0;
+        p.velocityY = 0;
+      });
+    };
+
+    window.addEventListener('resize', updateDimensions);
+    container.addEventListener('mousemove', handleMouseMove);
+    container.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      window.removeEventListener('resize', updateDimensions);
+      container.removeEventListener('mousemove', handleMouseMove);
+      container.removeEventListener('mouseleave', handleMouseLeave);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
   }, []);
 
-  const innerOrbitItems = [
-    "GraphQL API Mesh",
-    "Fulfillment & Logistics",
-    "Marketplace & Retail Channel",
-    "Onboarding & HR Platform",
-    "Identity Auth Layer",
-  ];
+  useEffect(() => {
+    if (!canvasRef.current) return;
 
-  const outerOrbitItems = [
-    "Catalog & Product Data Hub",
-    "Streaming Frameworks",
-    "Brand & Creative Portal",
-    "Analytics Data Warehouse",
-    "Dealer & Distributor Portal",
-    "Workflow Automation Engine",
-    "Influencer & Referral Portal",
-  ];
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
 
-  const innerOrbitDuration = 240;
-  const outerOrbitDuration = 180;
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const particles = particlesRef.current;
+      const mouse = mouseRef.current;
 
-  return (
-    <div className="relative">
-      {/* Stars background */}
-      <div className="absolute inset-0">
-        <div className="stars-container">
-          {[...Array(350)].map((_, i) => (
-            <div
-              key={i}
-              className="star"
-              style={{
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 10}s`,
-                width: `${Math.random() * 1.6 + 0.4}px`,
-                height: `${Math.random() * 1.6 + 0.4}px`,
-                opacity: Math.random() * 0.7 + 0.2,
-              }}
-            />
-          ))}
-        </div>
-      </div>
+      // Repulsion settings
+      const REPULSION_RADIUS = 54;
+      const REPULSION_STRENGTH = 3.5;
 
-      {/* Shooting stars */}
-      <div ref={shootingStarRef} className="absolute inset-0 z-10" />
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        // draw
+        ctx.save();
+        ctx.globalAlpha = 1;
+        ctx.shadowColor = "#3b82f6";
+        ctx.shadowBlur = 3;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
 
-      {/* Main orbital system - fixed positioning */}
-      <div className="orbit-system">
-        {/* Orbit rings */}
-        <div className="orbit-rings-container">
-          <div className="inner-orbit-ring" />
-          <div className="outer-orbit-ring" />
-        </div>
+        // If we're in "returning" mode (mouse has left) - lerp positions directly
+        if (!mouse.active && mouse.returning) {
+          // smooth interpolation back to base position (no velocities used)
+          const lerpFactor = 0.08;
+          const dxBase = p.baseX - p.x;
+          const dyBase = p.baseY - p.y;
+          p.x += dxBase * lerpFactor;
+          p.y += dyBase * lerpFactor;
+          p.velocityX = 0;
+          p.velocityY = 0;
+          // snap if close
+          if (Math.abs(dxBase) < 0.38 && Math.abs(dyBase) < 0.38) {
+            p.x = p.baseX;
+            p.y = p.baseY;
+          }
+          continue;
+        }
 
-        {/* Center element */}
-        <motion.div
-          className="platformz-center-container"
-          animate={{
-            scale: [1, 1.035, 1],
-            opacity: [0.92, 1, 0.92],
-          }}
-          transition={{
-            repeat: Infinity,
-            duration: 3,
+        // Gentle pull to base
+        p.velocityX += (p.baseX - p.x) * 0.0048;
+        p.velocityY += (p.baseY - p.y) * 0.0048;
+
+        // Mouse repulsion
+        if (mouse.active) {
+          const mx = mouse.x - p.x;
+          const my = mouse.y - p.y;
+          const mouseDistance = Math.sqrt(mx * mx + my * my);
+
+          if (mouseDistance > 0 && mouseDistance < REPULSION_RADIUS) {
+            const force = (REPULSION_RADIUS - mouseDistance) / REPULSION_RADIUS;
+            const repulsionForce = force * REPULSION_STRENGTH;
+            p.velocityX -= (mx / mouseDistance) * repulsionForce;
+            p.velocityY -= (my / mouseDistance) * repulsionForce;
+          }
+        }
+
+        // Apply velocity and friction
+        p.x += p.velocityX;
+        p.y += p.velocityY;
+        p.velocityX *= p.friction;
+        p.velocityY *= p.friction;
+      }
+
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
+
+    if (showStars) animate();
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [showStars, containerDimensions]);
+
+  // Fade-in logic, shooting stars logic (unchanged)
+  useEffect(() => {
+    const outerCircle = outerCircleRef.current;
+    const innerOrbit = innerOrbitRef.current;
+    const innerCircle = innerCircleRef.current;
+
+    if (outerCircle && innerCircle && innerOrbit) {
+      outerCircle.style.animation = 'rotate 100s linear infinite';
+      innerOrbit.style.animation = 'rotate 140s linear infinite';
+      innerCircle.style.animation = 'glow 10s ease-in-out infinite';
+    }
+
+    // Delay showing stars (fade-in)
+    const starsTimer = setTimeout(() => {
+      setShowStars(true);
+    }, 5500);
+
+    const shootingStarsVisibilityTimer = setTimeout(() => {
+      setShowShootingStars(true);
+    }, 6000);
+
+    // Shooting star logic
+    const createShootingStar = () => {
+      if (!shootingStarRef.current || !showShootingStars) return;
+      const container = shootingStarRef.current;
+      const star = document.createElement('div');
+      star.classList.add('shooting-star');
+      const startX = Math.random() * 80;
+      const startY = Math.random() * 40;
+      const length = Math.random() * 120 + 60;
+      star.style.left = `${startX}%`;
+      star.style.top = `${startY}%`;
+      star.style.width = `${length}px`;
+      container.appendChild(star);
+      setTimeout(() => star.remove(), 800);
+    };
+
+    // Delay shooting stars to start with the background stars
+    const shootingStarsTimer = setTimeout(() => {
+      const interval = setInterval(() => {
+        if (Math.random() < 0.28) createShootingStar();
+      }, 900);
+      return () => clearInterval(interval);
+    }, 6000);
+
+    return () => {
+      clearTimeout(starsTimer);
+      clearTimeout(shootingStarsTimer);
+      clearTimeout(shootingStarsVisibilityTimer);
+    };
+  }, [showShootingStars]);
+
+  // Create the outer platform bubbles
+  const createOuterBubbles = () => {
+    const bubbles = [];
+    const radius = 350;
+    const outerBubblesData = [
+      { name: 'Brand & Creative Portal' },
+      { name: 'Dealer & Distributive Portal' },
+      { name: 'Influencer & Referral Portal' },
+      { name: 'Marketplace & Retail Channel' },
+      { name: 'Onboarding & HR Platform' },
+      { name: 'Fulfillment & Logistics' },
+      { name: 'Onboarding & HR Platform' },
+      { name: 'Streaming Frameworks' }
+    ];
+    for (let i = 0; i < outerBubblesCount; i++) {
+      const angle = (i / outerBubblesCount) * 2 * Math.PI;
+      const x = radius * Math.cos(angle);
+      const y = radius * Math.sin(angle);
+      bubbles.push(
+        <div
+          className="platform-bubble-container"
+          key={`outer-${i}`}
+          style={{
+            transform: `translate(${x}px, ${y}px)`,
           }}
         >
-          <div className="platformz-center">
-            <div className="platformz-title">Platformz</div>
-            <div className="platformz-subtitle">OS</div>
-            <div className="platformz-desc">
-              <p>Unified Business</p>
-              <p>Operating</p>
-              <p>System</p>
+          <div className="platform-bubble">
+            <div className="bubble-content">
+              {outerBubblesData[i].name}
             </div>
           </div>
-        </motion.div>
+        </div>
+      );
+    }
+    return bubbles;
+  };
 
-        {/* Inner orbit with fixed size and position */}
-        <motion.div
-          className="inner-orbit-container"
-          animate={{ rotate: 360 }}
-          transition={{
-            duration: innerOrbitDuration,
-            repeat: Infinity,
-            ease: "linear",
-          }}
+  // Create the inner platform bubbles
+  const createInnerBubbles = () => {
+    const bubbles = [];
+    const radius = 220;
+    const innerBubblesData = [
+      { name: 'Analytics Data Warehouse' },
+      { name: 'Identity  Auth Layer' },
+      { name: 'GraphQL API Mesh' },
+      { name: 'Workflow Automation Engine' }
+    ];
+    for (let i = 0; i < innerBubblesCount; i++) {
+      const angle = (i / innerBubblesCount) * 2 * Math.PI;
+      const x = radius * Math.cos(angle);
+      const y = radius * Math.sin(angle);
+      bubbles.push(
+        <div
+          className="platform-bubble-container"
+          key={`inner-${i}`}
           style={{
-            width: "100%",
-            height: "100%",
-            position: "absolute",
-            top: 0,
-            left: 0
+            transform: `translate(${x}px, ${y}px)`,
           }}
         >
-          {innerOrbitItems.map((item, index) => {
-            // Distribute items evenly in a circle
-            const angle = (index / innerOrbitItems.length) * 2 * Math.PI;
-            // Inner orbit radius - must match the CSS (half of inner-orbit-ring width)
-            const radius = 160; 
-            
-            // Calculate position based on angle and radius from center
-            const x = 50 + Math.cos(angle) * radius / (window.innerWidth / 100);
-            const y = 50 + Math.sin(angle) * radius / (window.innerHeight / 100);
+          <div className="platform-bubble inner-bubble">
+            <div className="bubble-content">
+              {innerBubblesData[i].name}
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return bubbles;
+  };
 
-            return (
-              <motion.div
-                key={index}
-                className="orbit-item-wrapper"
-                style={{
-                  // Position as percentage of viewport to maintain stability
-                  left: `${x}%`,
-                  top: `${y}%`,
-                }}
-                // Counter-rotate to keep text upright
-                animate={{ rotate: -360 }}
-                transition={{
-                  duration: innerOrbitDuration,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              >
-                <div className="orbit-sphere">
-                  {item.split(' & ').length > 1 ? (
-                    <>
-                      <div>{item.split(' & ')[0]}</div>
-                      <div>&</div>
-                      <div>{item.split(' & ')[1]}</div>
-                    </>
-                  ) : (
-                    item.split(' ').map((word, i) => <div key={i}>{word}</div>)
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
-        </motion.div>
+  return (
+    <div
+      className="full-page-container"
+      ref={containerRef}
+      style={{ position: "relative" }}
+    >
+      {/* Particle canvas for background stars */}
+      <canvas
+        ref={canvasRef}
+        className={`particle-canvas ${showStars ? 'stars-visible' : ''}`}
+        style={{
+          opacity: showStars ? 1 : 0,
+          visibility: showStars ? 'visible' : 'hidden',
+          transition: 'opacity 3s ease-in, visibility 3s ease-in',
+          pointerEvents: 'none',
+          zIndex: 1
+        }}
+      />
 
-        {/* Outer orbit with fixed size and position */}
-        <motion.div
-          className="outer-orbit-container"
-          animate={{ rotate: 360 }}
-          transition={{
-            duration: outerOrbitDuration,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-          style={{
-            width: "100%",
-            height: "100%",
-            position: "absolute",
-            top: 0,
-            left: 0
-          }}
-        >
-          {outerOrbitItems.map((item, index) => {
-            // Distribute items evenly in a circle
-            const angle = (index / outerOrbitItems.length) * 2 * Math.PI;
-            // Outer orbit radius - must match the CSS (half of outer-orbit-ring width)
-            const radius = 320; 
-            
-            // Calculate position based on angle and radius from center
-            const x = 50 + Math.cos(angle) * radius / (window.innerWidth / 100);
-            const y = 50 + Math.sin(angle) * radius / (window.innerHeight / 100);
+      {/* Shooting stars container */}
+      <div ref={shootingStarRef} className="shooting-stars-container" />
 
-            return (
-              <motion.div
-                key={index}
-                className="orbit-item-wrapper"
-                style={{
-                  // Position as percentage of viewport to maintain stability
-                  left: `${x}%`,
-                  top: `${y}%`,
-                }}
-                // Counter-rotate to keep text upright
-                animate={{ rotate: -360 }}
-                transition={{
-                  duration: outerOrbitDuration,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              >
-                <div className="orbit-sphere">
-                  {item.split(' & ').length > 1 ? (
-                    <>
-                      <div>{item.split(' & ')[0]}</div>
-                      <div>&</div>
-                      <div>{item.split(' & ')[1]}</div>
-                    </>
-                  ) : (
-                    item.split(' ').map((word, i) => <div key={i}>{word}</div>)
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
-        </motion.div>
+      <div className="orbital-platform-container">
+        {/* Center platform core */}
+        <div className="platform-core">
+          <div className="core-foggy-bg"></div>
+          <div className="core-title">Platformz OS</div>
+          <div className="core-subtitle">
+            Unified Business<br />
+            Operating<br />
+            System
+          </div>
+        </div>
+        {/* Outer circle (visible orbit) */}
+        <div className="orbit-path outer-orbit"></div>
+        {/* Inner circle (visible orbit) */}
+        <div className="orbit-path inner-orbit"></div>
+        {/* Rotating containers */}
+        <div ref={outerCircleRef} className="outer-circle">
+          {createOuterBubbles()}
+        </div>
+        <div className="orbit-fog" />
+        {/* Inner orbit rotating container */}
+        <div ref={innerOrbitRef} className="inner-orbit-circle">
+          {createInnerBubbles()}
+        </div>
+        {/* Inner glow effect */}
+        <div ref={innerCircleRef} className="inner-glow"></div>
       </div>
     </div>
   );
 };
 
-export default PlatformzOrbital;
+export default Test2;

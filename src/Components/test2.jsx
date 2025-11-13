@@ -8,32 +8,223 @@ const Test2 = () => {
   const innerCircleRef = useRef(null);
   const innerOrbitRef = useRef(null);
   const shootingStarRef = useRef(null);
+  
+  // For stars
+  const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+  const particlesRef = useRef([]);
+  const mouseRef = useRef({ x: 0, y: 0, active: false, returning: false });
+  const requestRef = useRef(null);
+  const previousTimeRef = useRef(0);
+  
   const [showStars, setShowStars] = useState(false);
   const [showShootingStars, setShowShootingStars] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
 
+  // Initialize stars and canvas
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const container = containerRef.current;
+    const handleResize = () => {
+      if (!canvasRef.current) return;
+      
+      const canvas = canvasRef.current;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      
+      // Recreate particles when resize
+      initParticles();
+      setCanvasReady(true);
+    };
+
+    const initParticles = () => {
+      if (!canvasRef.current) return;
+      
+      const canvas = canvasRef.current;
+      const width = canvas.width;
+      const height = canvas.height;
+      const particles = [];
+      const particleCount = Math.min(500, Math.floor((width * height) / 2000));
+      
+      // Create particles in a more distributed pattern
+      for (let i = 0; i < particleCount; i++) {
+        const x = Math.random() * width;
+        const y = Math.random() * height;
+        particles.push({
+          x,
+          y,
+          size: 0.6 + Math.random() * 1.2,
+          baseX: x,
+          baseY: y,
+          density: Math.random() * 20 + 5,
+          color: `rgba(59, 130, 246, ${Math.random() * 0.45 + 0.25})`,
+          velocityX: 0,
+          velocityY: 0,
+        });
+      }
+      
+      particlesRef.current = particles;
+    };
+
+    // Mouse interactions
+    const handleMouseMove = (e) => {
+      if (!containerRef.current) return;
+      
+      const rect = containerRef.current.getBoundingClientRect();
+      mouseRef.current = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+        active: true,
+        returning: false,
+      };
+    };
+    
+    const handleMouseLeave = () => {
+      mouseRef.current.active = false;
+      mouseRef.current.returning = true;
+    };
+
+    window.addEventListener('resize', handleResize);
+    container.addEventListener('mousemove', handleMouseMove);
+    container.addEventListener('mouseleave', handleMouseLeave);
+    
+    // Initial setup
+    handleResize();
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      container.removeEventListener('mousemove', handleMouseMove);
+      container.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, []);
+
+  // Animation loop
+  useEffect(() => {
+    if (!showStars || !canvasReady || !canvasRef.current) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    
+    // Constants for performance
+    const REPULSION_RADIUS = 40;
+    const REPULSION_STRENGTH = 6;
+    const RETURN_SPEED = 0.04;
+    const FRICTION = 0.95;
+    
+    const animate = (timestamp) => {
+      if (!canvas) return;
+      
+      // Time-based animation for consistent speed
+      const deltaTime = timestamp - (previousTimeRef.current || timestamp);
+      previousTimeRef.current = timestamp;
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Get current state
+      const particles = particlesRef.current;
+      const mouse = mouseRef.current;
+      
+      // Draw and update particles
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        
+        // Draw particle with slight glow
+        ctx.save();
+        ctx.globalAlpha = 0.95;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        
+        // Handle particle movement
+        if (mouse.returning) {
+          // Smooth return to base position
+          const dxBase = p.baseX - p.x;
+          const dyBase = p.baseY - p.y;
+          p.x += dxBase * RETURN_SPEED;
+          p.y += dyBase * RETURN_SPEED;
+          
+          // Reset velocity
+          p.velocityX = 0;
+          p.velocityY = 0;
+          
+          // Snap if very close to avoid floating point issues
+          if (Math.abs(dxBase) < 0.3 && Math.abs(dyBase) < 0.3) {
+            p.x = p.baseX;
+            p.y = p.baseY;
+          }
+          continue;
+        }
+        
+        // Small pull back to original position
+        p.velocityX += (p.baseX - p.x) * 0.003;
+        p.velocityY += (p.baseY - p.y) * 0.003;
+        
+        // Mouse repulsion
+        if (mouse.active) {
+          const dx = mouse.x - p.x;
+          const dy = mouse.y - p.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          if (distance < REPULSION_RADIUS && distance > 0) {
+            // Normalized direction vector times repulsion strength
+            const force = (REPULSION_RADIUS - distance) / REPULSION_RADIUS;
+            const dirX = dx / distance;
+            const dirY = dy / distance;
+            
+            p.velocityX -= dirX * force * REPULSION_STRENGTH;
+            p.velocityY -= dirY * force * REPULSION_STRENGTH;
+          }
+        }
+        
+        // Apply velocity with friction
+        p.x += p.velocityX;
+        p.y += p.velocityY;
+        p.velocityX *= FRICTION;
+        p.velocityY *= FRICTION;
+      }
+      
+      // Continue animation loop
+      requestRef.current = requestAnimationFrame(animate);
+    };
+    
+    // Start animation
+    requestRef.current = requestAnimationFrame(animate);
+    
+    // Cleanup
+    return () => {
+      cancelAnimationFrame(requestRef.current);
+      previousTimeRef.current = 0;
+    };
+  }, [showStars, canvasReady]);
+
+  // Main component setup
   useEffect(() => {
     const outerCircle = outerCircleRef.current;
     const innerOrbit = innerOrbitRef.current;
     const innerCircle = innerCircleRef.current;
     
     if (outerCircle && innerCircle && innerOrbit) {
-      // Increased rotation speed (decreased duration)
-      outerCircle.style.animation = 'rotate 100s linear infinite'; // Faster
-      innerOrbit.style.animation = 'rotate 140s linear infinite'; // Slower
+      outerCircle.style.animation = 'rotate 100s linear infinite';
+      innerOrbit.style.animation = 'rotate 140s linear infinite';
       innerCircle.style.animation = 'glow 10s ease-in-out infinite';
     }
 
     // Delay showing stars
     const starsTimer = setTimeout(() => {
       setShowStars(true);
-    }, 5500); // 5.5 seconds delay
+    }, 5500);
 
     const shootingStarsVisibilityTimer = setTimeout(() => {
-        setShowShootingStars(true);
-      }, 6000);
+      setShowShootingStars(true);
+    }, 6000);
+    
     // Shooting star logic
     const createShootingStar = () => {
-        if (!shootingStarRef.current || !showShootingStars) return;
+      if (!shootingStarRef.current || !showShootingStars) return;
       const container = shootingStarRef.current;
       const star = document.createElement('div');
       star.classList.add('shooting-star');
@@ -49,19 +240,19 @@ const Test2 = () => {
 
     // Delay shooting stars to start with the background stars
     const shootingStarsTimer = setTimeout(() => {
-        const interval = setInterval(() => {
-          if (Math.random() < 0.28) createShootingStar();
-        }, 900);
-        
-        return () => clearInterval(interval);
-      }, 6000);
-    
-      return () => {
-        clearTimeout(starsTimer);
-        clearTimeout(shootingStarsTimer);
-        clearTimeout(shootingStarsVisibilityTimer);
-      };
-    }, [showShootingStars]); 
+      const interval = setInterval(() => {
+        if (Math.random() < 0.28) createShootingStar();
+      }, 900);
+      
+      return () => clearInterval(interval);
+    }, 6000);
+  
+    return () => {
+      clearTimeout(starsTimer);
+      clearTimeout(shootingStarsTimer);
+      clearTimeout(shootingStarsVisibilityTimer);
+    };
+  }, [showShootingStars]); 
 
   // Create the outer platform bubbles
   const createOuterBubbles = () => {
@@ -141,30 +332,13 @@ const Test2 = () => {
     return bubbles;
   };
 
-  // Create stars for background
-  const createStars = () => {
-    return [...Array(350)].map((_, i) => (
-      <div
-        key={i}
-        className="star"
-        style={{
-          top: `${Math.random() * 100}%`,
-          left: `${Math.random() * 100}%`,
-          animationDelay: `${Math.random() * 10}s`,
-          width: `${Math.random() * 1.6 + 0.4}px`,
-          height: `${Math.random() * 1.6 + 0.4}px`,
-          opacity: Math.random() * 0.7 + 0.2,
-        }}
-      />
-    ));
-  };
-
   return (
-    <div className="full-page-container">
-      {/* Stars background with conditional class for fade-in effect */}
-      <div className={`stars-container ${showStars ? 'stars-visible' : ''}`}>
-        {createStars()}
-      </div>
+    <div className="full-page-container" ref={containerRef}>
+      {/* Canvas for interactive stars */}
+      <canvas
+        ref={canvasRef}
+        className={`star-canvas ${showStars ? 'stars-visible' : ''}`}
+      />
 
       {/* Shooting stars container */}
       <div ref={shootingStarRef} className="shooting-stars-container" />
