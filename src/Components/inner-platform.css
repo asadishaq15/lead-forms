@@ -24,13 +24,31 @@
     z-index: 10;
   }
   
+  /* Add this */
+.bubble-label {
+    display: block;              /* ensures width applies */
+    max-width: 215px;           /* <-- reduce this to control text width */
+    box-sizing: border-box;
+    padding: 6px 8px;           /* inner breathing room */
+    text-align: center;
+    white-space: normal;        /* allow wrapping */
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+    line-height: 1.15;
+    font-size: 12px;           /* tweak for legibility */
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+
+  
   .inner-solid-ring {
     position: absolute;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 460px;              /* same radius as inner-orbit-circle */
-    height: 460px;
+    width: 500px;              /* same radius as inner-orbit-circle */
+    height: 500px;
     border-radius: 50%;
     border: 1px solid rgba(59, 130, 246, 0.4); /* same as core-slim-ring */
     background: transparent;
@@ -133,8 +151,8 @@
   
   /* Inner bubble adjustments */
   .inner-bubble {
-    width: 120px;
-    height: 120px;
+    width: 130px;
+    height: 130px;
     margin-left: -55px;
     margin-top: -55px;
     line-height: 1.3;
@@ -165,14 +183,68 @@
     border-radius: 50%;
     text-align: center;
     z-index: 5;
+  
+    /* keep your original color mixture/saturation */
     background-image: radial-gradient(
       circle at center,
       #5b21b6 30%,
       #1e40af 60%,
       #1e3a8a 100%
     );
-    box-shadow: 0 0 20px 0 rgba(59,130,246,0.5);
-    border: 1px solid rgba(59, 130, 246, 0.4);
+  
+    /* layered glow + subtle inset to increase presence without changing hue */
+    box-shadow:
+      0 0 26px 8px rgba(91,33,182,0.28),   /* outer halo tuned to original purple */
+      0 0 36px 10px rgba(30,64,175,0.10) inset; /* inner sheen that matches the gradient */
+  
+    border: 1px solid rgba(91,33,182,0.8);
+  
+    /* stronger, smooth pulse that scales slightly */
+    animation: corePulseProminent 3.6s ease-in-out infinite;
+    transition: box-shadow 200ms linear, transform 200ms linear;
+  }
+
+  .platform-core::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    z-index: 4;
+    pointer-events: none;
+    background: radial-gradient(
+      circle at center,
+      rgba(91,33,182,0.44) 0%,
+      rgba(30,64,175,0.18) 35%,
+      rgba(16,24,86,0) 70%
+    );
+    filter: blur(16px);
+    animation: coreHaloPulse 3.6s ease-in-out infinite;
+  }
+  
+  /* inner sheen that grows with the pulse */
+  .platform-core::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    z-index: 6;
+    pointer-events: none;
+    background: radial-gradient(
+      circle at center,
+      rgba(255,255,255,0.06) 0%,
+      rgba(91,33,182,0.09) 35%,
+      rgba(91,33,182,0) 70%
+    );
+    mix-blend-mode: screen;
+    animation: coreInnerSheen 3.6s ease-in-out infinite;
   }
   
   /* Core content */
@@ -197,24 +269,13 @@
     top: 50%;
     transform: translate(-50%, -50%);
     border-radius: 50%;
-    border: 1px solid rgba(59, 130, 246, 0.4);
+    border: 1px solid rgba(59, 130, 246, 0.4); /* keep original ring tint if you prefer */
     z-index: 3;
     pointer-events: none;
-    animation: coreRingPulsate 4s ease-in-out infinite;
-    box-shadow: 0 0 8px 2px rgba(59, 130, 246, 0.3);
+    animation: coreRingPulsate 3.6s ease-in-out infinite;
+    box-shadow: 0 0 12px 3px rgba(91,33,182,0.26);
   }
   
-  .outer-text {
-    color: white;
-    font-weight: 600;
-    font-size: 14px;
-    line-height: 1.2;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    z-index: 5;
-    pointer-events: none;
-    font-family: sans-serif;
-  }
 
   
   /* Keyframes */
@@ -262,18 +323,66 @@
   
   /* responsive scaling */
   @media (max-width: 740px) {
-    
-    .outer-text {
-        font-size: 16px;
-        width: 400px;
-      }
 
-    .orbital-platform-container.inner-only { transform: scale(0.78); }
+    .orbital-platform-container.inner-only { transform: scale(0.68); }
   }
   
+  @media (max-width: 420px) and (orientation: portrait) {
+   
+    .orbital-platform-container.inner-only { transform: scale(0.65); }
+  }
+
   @media (max-width: 500px) {
-    .outer-text {
-        font-size: 10px;
-      }
-    .orbital-platform-container.inner-only { transform: scale(0.60); }
+   
+    
+    .orbital-platform-container.inner-only { transform: scale(0.55); }
+  }
+
+  .particle-canvas {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+/* Ensure the orbital container has proper positioning */
+.orbital-platform-container {
+  position: relative;
+  z-index: 3;
+}
+
+  @keyframes corePulseProminent {
+    0% {
+      transform: scale(1);
+      box-shadow:
+        0 0 26px 8px rgba(91,33,182,0.28),
+        0 0 36px 10px rgba(30,64,175,0.10) inset;
+    }
+    50% {
+      transform: scale(1.035);
+      box-shadow:
+        0 0 80px 28px rgba(91,33,182,0.52),
+        0 0 56px 18px rgba(30,64,175,0.14) inset;
+    }
+    100% {
+      transform: scale(1);
+      box-shadow:
+        0 0 26px 8px rgba(91,33,182,0.28),
+        0 0 36px 10px rgba(30,64,175,0.10) inset;
+    }
+  }
+  
+  @keyframes coreHaloPulse {
+    0%   { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+    50%  { opacity: 1;   transform: translate(-50%, -50%) scale(1.06); }
+    100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+  }
+  
+  @keyframes coreInnerSheen {
+    0%   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    50%  { transform: translate(-50%, -50%) scale(1.12); opacity: 0.96; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
   }
