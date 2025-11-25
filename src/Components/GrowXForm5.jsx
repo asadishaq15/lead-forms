@@ -119,6 +119,14 @@ export default function GrowXForm5() {
     return false;
   };
 
+  // Format date as YYYY-MM-DD for the API
+  const formatDate = (yyyy, mm, dd) => {
+    // Ensure month and day are two digits
+    const month = mm.padStart(2, '0');
+    const day = dd.padStart(2, '0');
+    return `${yyyy}-${month}-${day}`;
+  };
+
   // Handle form submission with all data via enhanced ping endpoint
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -154,6 +162,13 @@ export default function GrowXForm5() {
     setIsCheckingBuyers(true);
   
     try {
+      // Format DOB in YYYY-MM-DD format for API
+      const dob = formatDate(
+        formData.dob_yyyy,
+        formData.dob_mm,
+        formData.dob_dd
+      );
+
       // Build query parameters for all form fields
       const queryParams = new URLSearchParams({
         trackdrive_number: TRACKDRIVE_NUMBER,
@@ -162,6 +177,8 @@ export default function GrowXForm5() {
         first_name: formData.first_name,
         last_name: formData.last_name,
         zip: formData.zip,
+        dob: dob,
+        // Still include individual date components
         dob_mm: formData.dob_mm,
         dob_dd: formData.dob_dd,
         dob_yyyy: formData.dob_yyyy
@@ -180,11 +197,24 @@ export default function GrowXForm5() {
       const pingData = await pingResponse.json();
   
       if (!pingData.success || !pingData.try_all_buyers_ping_id) {
-        setError(
-          (pingData.errors && pingData.errors.join(", ")) ||
-            pingData.status ||
-            "No buyers are available at the moment."
-        );
+        // Handle different error formats
+        let errorMessage;
+        if (pingData.errors) {
+          if (Array.isArray(pingData.errors)) {
+            errorMessage = pingData.errors.join(", ");
+          } else if (typeof pingData.errors === 'object') {
+            // Extract error messages from object properties
+            errorMessage = Object.entries(pingData.errors)
+              .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
+              .join("; ");
+          } else {
+            errorMessage = String(pingData.errors);
+          }
+        } else {
+          errorMessage = pingData.status || "No buyers are available at the moment.";
+        }
+        
+        setError(errorMessage);
         setIsCheckingBuyers(false);
         return;
       }

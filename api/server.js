@@ -290,7 +290,6 @@ app.post("/api/post3", async (req, res) => {
   }
 });
 
-// GET /api/ping4?caller_id=+1XXXXXXXXXX
 app.get("/api/ping4", async (req, res) => {
   // Validate config presence (hardcoded above)
   if (!TRACKDRIVE_NUMBER_5 || !TRAFFIC_SOURCE_ID_5) {
@@ -307,6 +306,7 @@ app.get("/api/ping4", async (req, res) => {
     city, 
     state, 
     zip, 
+    dob, 
     dob_mm, 
     dob_dd, 
     dob_yyyy, 
@@ -317,8 +317,21 @@ app.get("/api/ping4", async (req, res) => {
     return res.status(400).json({ success: false, status: "error", errors: ["Invalid or missing caller_id. Expected +1XXXXXXXXXX"] });
   }
 
+  // Construct DOB in YYYY-MM-DD format if individual components are provided but dob is not
+  let formattedDob = dob;
+  if (!formattedDob && dob_yyyy && dob_mm && dob_dd) {
+    // Make sure month and day are two digits
+    const month = dob_mm.padStart(2, '0');
+    const day = dob_dd.padStart(2, '0');
+    formattedDob = `${dob_yyyy}-${month}-${day}`;
+  }
+
+  if (!formattedDob) {
+    return res.status(400).json({ success: false, status: "error", errors: ["Missing DOB information"] });
+  }
+
   // Build the base URL with required parameters
-  let apiUrl = `https://growxmarketingservices.trackdrive.com/api/v1/inbound_webhooks/ping/check_for_available_ssdi_cpa_dm_buyers?trackdrive_number=${encodeURIComponent(TRACKDRIVE_NUMBER_5)}&traffic_source_id=${encodeURIComponent(TRAFFIC_SOURCE_ID_5)}&caller_id=${encodeURIComponent(caller_id)}`;
+  let apiUrl = `https://growxmarketingservices.trackdrive.com/api/v1/inbound_webhooks/ping/check_for_available_ssdi_cpa_dm_buyers?trackdrive_number=${encodeURIComponent(TRACKDRIVE_NUMBER_5)}&traffic_source_id=${encodeURIComponent(TRAFFIC_SOURCE_ID_5)}&caller_id=${encodeURIComponent(caller_id)}&dob=${encodeURIComponent(formattedDob)}`;
   
   // Add additional parameters if provided
   if (first_name) apiUrl += `&first_name=${encodeURIComponent(first_name)}`;
@@ -328,9 +341,6 @@ app.get("/api/ping4", async (req, res) => {
   if (city) apiUrl += `&city=${encodeURIComponent(city)}`;
   if (state) apiUrl += `&state=${encodeURIComponent(state)}`;
   if (zip) apiUrl += `&zip=${encodeURIComponent(zip)}`;
-  if (dob_mm) apiUrl += `&dob_mm=${encodeURIComponent(dob_mm)}`;
-  if (dob_dd) apiUrl += `&dob_dd=${encodeURIComponent(dob_dd)}`;
-  if (dob_yyyy) apiUrl += `&dob_yyyy=${encodeURIComponent(dob_yyyy)}`;
   if (trusted_form_cert_url) apiUrl += `&trusted_form_cert_url=${encodeURIComponent(trusted_form_cert_url)}`;
 
   try {
@@ -344,10 +354,27 @@ app.get("/api/ping4", async (req, res) => {
     }
 
     if (err.response) {
+      // Handle errors as objects or arrays
+      let errors;
+      if (typeof err.response.data?.errors === 'object' && !Array.isArray(err.response.data?.errors)) {
+        // Handle errors as an object with keys and values
+        errors = Object.entries(err.response.data.errors)
+          .map(([key, messages]) => {
+            if (Array.isArray(messages)) {
+              return `${key}: ${messages.join(', ')}`;
+            } else {
+              return `${key}: ${messages}`;
+            }
+          });
+      } else {
+        // Handle errors as an array or other format
+        errors = err.response.data?.errors || [`Upstream status ${err.response.status}`];
+      }
+
       return res.status(err.response.status || 502).json({
         success: false,
         status: "upstream_error",
-        errors: [err.response.data?.errors?.join?.(", ") || err.response.data?.status || `Upstream status ${err.response.status}`],
+        errors: errors
       });
     }
 
@@ -364,8 +391,23 @@ app.post("/api/post4", async (req, res) => {
 
   try {
     const body = req.body || {};
-    const required = ["ping_id", "caller_id", "first_name", "last_name", "zip", "dob_mm", "dob_dd", "dob_yyyy"];
+    const required = ["ping_id", "caller_id", "first_name", "last_name", "zip", "dob"];
     const missing = required.filter(k => !body[k]);
+    
+    // If no dob but has individual components, construct the dob
+    if (missing.includes('dob') && body.dob_yyyy && body.dob_mm && body.dob_dd) {
+      // Make sure month and day are two digits
+      const month = String(body.dob_mm).padStart(2, '0');
+      const day = String(body.dob_dd).padStart(2, '0');
+      body.dob = `${body.dob_yyyy}-${month}-${day}`;
+      
+      // Remove 'dob' from missing fields if we've created it
+      const dobIndex = missing.indexOf('dob');
+      if (dobIndex !== -1) {
+        missing.splice(dobIndex, 1);
+      }
+    }
+    
     if (missing.length) {
       return res.status(400).json({ success: false, status: "error", errors: ["Missing required fields: " + missing.join(", ")] });
     }
@@ -390,13 +432,32 @@ app.post("/api/post4", async (req, res) => {
     if (axios.isCancel(err)) {
       return res.status(504).json({ success: false, status: "timeout", errors: ["Upstream request timed out"] });
     }
+    
     if (err.response) {
+      // Handle errors as objects or arrays
+      let errors;
+      if (typeof err.response.data?.errors === 'object' && !Array.isArray(err.response.data?.errors)) {
+        // Handle errors as an object with keys and values
+        errors = Object.entries(err.response.data.errors)
+          .map(([key, messages]) => {
+            if (Array.isArray(messages)) {
+              return `${key}: ${messages.join(', ')}`;
+            } else {
+              return `${key}: ${messages}`;
+            }
+          });
+      } else {
+        // Handle errors as an array or other format
+        errors = err.response.data?.errors || [`Upstream status ${err.response.status}`];
+      }
+
       return res.status(err.response.status || 502).json({
         success: false,
         status: "upstream_error",
-        errors: [err.response.data?.errors?.join?.(", ") || err.response.data?.status || `Upstream status ${err.response.status}`],
+        errors: errors
       });
     }
+    
     return res.status(500).json({ success: false, status: "error", errors: ["Server error: " + (err.message || "unknown")] });
   }
 });
