@@ -28,6 +28,7 @@ import GrowXForm3 from './Components/GrowXForm3';
 import Test2 from './Components/test2';
 import GrowXForm4 from './Components/GrowXForm4';
 import InnerPlatform from './Components/InnerPlatform';
+import GrowXForm5 from './Components/GrowXForm5';
 
 
 function App() {
@@ -55,6 +56,7 @@ function App() {
         <Route path="/ssdi-aki-2" element={<GrowXForm2 />} /> 
        <Route path="/ssdi-cpa-fps" element={<GrowXForm3 />} /> 
        <Route path="/ssdi-cpa-fps-2" element={<GrowXForm4 />} /> 
+       <Route path="/ssdi-cpa-fps-3" element={<GrowXForm5 />} /> 
 
           {/* <Route path="/weaves" element={<GradientWaves />} />  
          <Route path="/test" element={<PlatformzOrbital />} />  */}

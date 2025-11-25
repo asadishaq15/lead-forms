@@ -17,6 +17,8 @@ const app = express();
 const CORS_ORIGIN = "*"; // or "http://localhost:3000"
 const PORT = 5001;
 const RTB_ID = "2811826747329218291";
+const TRACKDRIVE_NUMBER_5 = "+18338365435";
+const TRAFFIC_SOURCE_ID_5 = "1000";
 
 // GrowXForm2 configuration
 const TRACKDRIVE_NUMBER_2 = "+18775902476";
@@ -274,6 +276,117 @@ app.post("/api/post3", async (req, res) => {
     return res.status(upstream.status).json(upstream.data);
   } catch (err) {
     console.error("Post3 upstream error:", err.message || err);
+    if (axios.isCancel(err)) {
+      return res.status(504).json({ success: false, status: "timeout", errors: ["Upstream request timed out"] });
+    }
+    if (err.response) {
+      return res.status(err.response.status || 502).json({
+        success: false,
+        status: "upstream_error",
+        errors: [err.response.data?.errors?.join?.(", ") || err.response.data?.status || `Upstream status ${err.response.status}`],
+      });
+    }
+    return res.status(500).json({ success: false, status: "error", errors: ["Server error: " + (err.message || "unknown")] });
+  }
+});
+
+// GET /api/ping4?caller_id=+1XXXXXXXXXX
+app.get("/api/ping4", async (req, res) => {
+  // Validate config presence (hardcoded above)
+  if (!TRACKDRIVE_NUMBER_5 || !TRAFFIC_SOURCE_ID_5) {
+    console.error("Missing TRACKDRIVE_NUMBER_5 or TRAFFIC_SOURCE_ID_5 (hardcoded)");
+    return res.status(500).json({ success: false, status: "error", errors: ["Server misconfiguration"] });
+  }
+
+  const { 
+    caller_id, 
+    first_name, 
+    last_name, 
+    email, 
+    address, 
+    city, 
+    state, 
+    zip, 
+    dob_mm, 
+    dob_dd, 
+    dob_yyyy, 
+    trusted_form_cert_url 
+  } = req.query;
+  
+  if (!caller_id || !/^\+1\d{10}$/.test(caller_id)) {
+    return res.status(400).json({ success: false, status: "error", errors: ["Invalid or missing caller_id. Expected +1XXXXXXXXXX"] });
+  }
+
+  // Build the base URL with required parameters
+  let apiUrl = `https://growxmarketingservices.trackdrive.com/api/v1/inbound_webhooks/ping/check_for_available_ssdi_cpa_dm_buyers?trackdrive_number=${encodeURIComponent(TRACKDRIVE_NUMBER_5)}&traffic_source_id=${encodeURIComponent(TRAFFIC_SOURCE_ID_5)}&caller_id=${encodeURIComponent(caller_id)}`;
+  
+  // Add additional parameters if provided
+  if (first_name) apiUrl += `&first_name=${encodeURIComponent(first_name)}`;
+  if (last_name) apiUrl += `&last_name=${encodeURIComponent(last_name)}`;
+  if (email) apiUrl += `&email=${encodeURIComponent(email)}`;
+  if (address) apiUrl += `&address=${encodeURIComponent(address)}`;
+  if (city) apiUrl += `&city=${encodeURIComponent(city)}`;
+  if (state) apiUrl += `&state=${encodeURIComponent(state)}`;
+  if (zip) apiUrl += `&zip=${encodeURIComponent(zip)}`;
+  if (dob_mm) apiUrl += `&dob_mm=${encodeURIComponent(dob_mm)}`;
+  if (dob_dd) apiUrl += `&dob_dd=${encodeURIComponent(dob_dd)}`;
+  if (dob_yyyy) apiUrl += `&dob_yyyy=${encodeURIComponent(dob_yyyy)}`;
+  if (trusted_form_cert_url) apiUrl += `&trusted_form_cert_url=${encodeURIComponent(trusted_form_cert_url)}`;
+
+  try {
+    const upstream = await axiosWithTimeout(apiUrl, { method: "GET" }, 8000);
+    return res.status(upstream.status).json(upstream.data);
+  } catch (err) {
+    console.error("Ping4 upstream error:", err.message || err);
+
+    if (axios.isCancel(err)) {
+      return res.status(504).json({ success: false, status: "timeout", errors: ["Upstream request timed out"] });
+    }
+
+    if (err.response) {
+      return res.status(err.response.status || 502).json({
+        success: false,
+        status: "upstream_error",
+        errors: [err.response.data?.errors?.join?.(", ") || err.response.data?.status || `Upstream status ${err.response.status}`],
+      });
+    }
+
+    return res.status(500).json({ success: false, status: "error", errors: ["Server error: " + (err.message || "unknown")] });
+  }
+});
+
+// POST /api/post4
+app.post("/api/post4", async (req, res) => {
+  if (!TRACKDRIVE_NUMBER_5 || !TRAFFIC_SOURCE_ID_5) {
+    console.error("Missing TRACKDRIVE_NUMBER_5 or TRAFFIC_SOURCE_ID_5 (hardcoded)");
+    return res.status(500).json({ success: false, status: "error", errors: ["Server misconfiguration"] });
+  }
+
+  try {
+    const body = req.body || {};
+    const required = ["ping_id", "caller_id", "first_name", "last_name", "zip", "dob_mm", "dob_dd", "dob_yyyy"];
+    const missing = required.filter(k => !body[k]);
+    if (missing.length) {
+      return res.status(400).json({ success: false, status: "error", errors: ["Missing required fields: " + missing.join(", ")] });
+    }
+
+    const payload = {
+      ...body,
+      trackdrive_number: TRACKDRIVE_NUMBER_5,
+      traffic_source_id: TRAFFIC_SOURCE_ID_5,
+    };
+
+    const apiUrl = "https://growxmarketingservices.trackdrive.com/api/v1/inbound_webhooks/post/check_for_available_ssdi_cpa_dm_buyers";
+
+    const upstream = await axiosWithTimeout(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: JSON.stringify(payload),
+    }, 10000);
+
+    return res.status(upstream.status).json(upstream.data);
+  } catch (err) {
+    console.error("Post4 upstream error:", err.message || err);
     if (axios.isCancel(err)) {
       return res.status(504).json({ success: false, status: "timeout", errors: ["Upstream request timed out"] });
     }
