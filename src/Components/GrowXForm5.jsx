@@ -265,7 +265,7 @@ export default function GrowXForm5() {
       <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
         <div className="bg-gradient-to-r from-blue-700 to-indigo-800 py-6 px-6">
           <h2 className="text-center text-2xl font-bold text-white">
-            SSDI CPA DM
+          SSDI CPA DM
           </h2>
         </div>
 
