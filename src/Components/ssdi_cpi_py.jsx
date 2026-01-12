@@ -32,14 +32,12 @@ const SSDICPIPY = () => {
       }
     }
 
-    // Email validation
     if (!/\S+@\S+\.\S+/.test(formData.email)) {
       setError("Please enter a valid email address.");
       setIsSubmitting(false);
       return;
     }
 
-    // Phone validation - expecting format +17194451111
     if (!/^\+1\d{10}$/.test(formData.caller_id)) {
       setError("Please enter a valid phone number in format: +17194451111");
       setIsSubmitting(false);
