@@ -30,6 +30,7 @@ import GrowXForm4 from './Components/GrowXForm4';
 import InnerPlatform from './Components/InnerPlatform';
 import GrowXForm5 from './Components/GrowXForm5';
 import BerkenMediaSSPILeadForm from './Components/New';
+import SSDICPIPY from './Components/ssdi_cpi_py';
 
 
 function App() {
@@ -59,6 +60,7 @@ function App() {
        <Route path="/ssdi-cpa-fps-2" element={<GrowXForm4 />} /> 
        <Route path="/ssdi-cpa-dm" element={<GrowXForm5 />} /> 
        <Route path="/cpa-bm" element={<BerkenMediaSSPILeadForm />} /> 
+       <Route path="/ssdi-cpi-py-2" element={<SSDICPIPY />} /> 
 
           {/* <Route path="/weaves" element={<GradientWaves />} />  
          <Route path="/test" element={<PlatformzOrbital />} />  */}

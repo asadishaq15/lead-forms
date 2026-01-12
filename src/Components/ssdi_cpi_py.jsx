@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 
-const BerkenMediaSSPILeadForm = () => {
+const SSDICPIPY = () => {
   const [formData, setFormData] = useState({
-    lead_token: "0edf70cf227d4b248dc3470b24a2457d",
+    lead_token: "1f5d31beefb34b328dcd009b58cf3c7e",
     caller_id: "",
-    traffic_source_id: "1000", 
+    traffic_source_id: "1001", 
     first_name: "",
     last_name: "",
     email: "",
@@ -49,7 +49,7 @@ const BerkenMediaSSPILeadForm = () => {
     // Using application/x-www-form-urlencoded format for the API
     const formBody = new URLSearchParams(formData);
 
-    fetch("https://berken-media-llc.trackdrive.com/api/v1/leads", {
+    fetch("https://assured-health.trackdrive.com/api/v1/leads", {
       method: "POST",
       headers: {
         "Accept": "application/json",
@@ -120,10 +120,9 @@ const BerkenMediaSSPILeadForm = () => {
               />
             </svg>
             <h2 className="text-center text-3xl font-extrabold text-white">
-              SSDI CPA BM
+              SSDI CPA PY 2
             </h2>
           </div>
-        
         </div>
 
         {error && (
@@ -292,8 +291,6 @@ const BerkenMediaSSPILeadForm = () => {
             </div>
           </div>
 
-
-
           {/* Submit Button */}
           <div className="pt-4">
             <button
@@ -333,15 +330,11 @@ const BerkenMediaSSPILeadForm = () => {
             </button>
           </div>
 
-          <p className="mt-4 text-xs text-center text-gray-500">
-            By submitting this form, you consent to being contacted about SSDI
-            benefits. Your information is securely processed by Berken Media
-            LLC.
-          </p>
+        
         </form>
       </div>
     </div>
   );
 };
 
-export default BerkenMediaSSPILeadForm;
+export default SSDICPIPY;
